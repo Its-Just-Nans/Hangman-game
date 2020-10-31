@@ -228,7 +228,7 @@ def server_display(step):
 			thread.start()
 			host_name = get_ip()
 			print('Serveur écoute en '+host_name+':'+str(port))
-			print('Saisissez '+host_name+':'+ str(port) +'sur le client pour jouer')
+			print('Saisissez '+host_name+':'+ str(port) +' sur le client pour jouer')
 		elif step == 2:
 			print('taper exit pour quitter')
 			while input() != 'exit':
@@ -249,32 +249,12 @@ def server_display(step):
 			app.button_saisi.pack(side="bottom")
 		elif step == 2:
 			pass
+
 def copie(ip):
 	app.clipboard_clear()
 	app.clipboard_append(ip)
 
-def start():
-	if terminal == '-t':
-		choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
-		#TODO check error
-		if choix == str(1):
-			return 'client'
-		elif choix == str(2):
-			return 'server'
-		else:
-			start()
-	else :
-		global app
-		app = tk.Tk()
-		#app.geometry('400x400')
-		app.title(nomJeu)
-		app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display(1))
-		app.button_server.pack(side="left")
-		app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
-		app.button_client.pack(side="right")
-		app.quit = tk.Button(app, text="Quitter", fg="red", command=app.destroy)
-		app.quit.pack(side="bottom")
-		app.mainloop()
+
 
 def get_ip():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -289,25 +269,19 @@ def get_ip():
 	return IP
 
 def run(state):
-	if state == 'server':
+	if state == '2':
 		server_display(1)
 		server_display(2)
 		server_display(3)
 		server_display(4)
 		server_display(5)
 		server_display(6)
-	else:
+	elif state == '1':
 		user_display(1)
 		user_display(2)
 		user_display(3)
 		user_display(4)
 		user_display(5)
-
-
-
-
-
-
 
 
 ###########################MAIN####################
@@ -324,9 +298,25 @@ global thread
 nomJeu = 'S℧sℙ℈ℼd℧s'
 port= 1500
 print('Bienvenue sur '+ nomJeu)
-state = start()
+terminal = '-t'
 if terminal == '-t':
-	run(state)
+	choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
+	#TODO check error
+	while(choix != '2' and choix != '1') :
+		choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
+	run(choix)
+else : 
+	global app
+	app = tk.Tk()
+	app.geometry('400x400')
+	app.title(nomJeu)
+	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display(1))
+	app.button_server.pack(side="left")
+	app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
+	app.button_client.pack(side="right")
+	app.quit = tk.Button(app, text="Quitter", fg="red", command=app.destroy)
+	app.quit.pack(side="bottom")
+	app.mainloop()
 
 print('Vous avez quitté ' + nomJeu + ', à bientôt')
 
