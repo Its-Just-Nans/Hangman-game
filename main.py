@@ -297,7 +297,7 @@ global user_choix
 global thread
 nomJeu = 'S℧sℙ℈ℼd℧s'
 port= 1500
-print('Bienvenue sur '+ nomJeu)
+
 
 if terminal == '-t':
 	choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
