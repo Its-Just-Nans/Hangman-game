@@ -12,7 +12,7 @@ def get_mac():
   mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
   return mac
 
-
+ 
 def Transform(mot):
 	mot=mot.translate({ord('é'):'e', ord('à'):'a', ord('è'):'e', ord('ê'):'e', ord('ù'):'u', ord('ç'):'c', ord('ô'):'o', ord('î'):'i', ord('ï'):'i', ord('â'):'a'	})
 	return mot
@@ -298,7 +298,7 @@ global thread
 nomJeu = 'S℧sℙ℈ℼd℧s'
 port= 1500
 print('Bienvenue sur '+ nomJeu)
-terminal = '-t'
+terminal = '-i'
 if terminal == '-t':
 	choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
 	#TODO check error
