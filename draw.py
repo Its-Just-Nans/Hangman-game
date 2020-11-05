@@ -2,7 +2,7 @@ from turtle import *
 
 # Pour nommer la fenêtre de jeu
 title("Le jeu du pendu !")
-
+hideturtle()
 tracer(0)
 
 # Vitesse d'éxécution du dessin
@@ -37,26 +37,20 @@ right(90)
 penup()
 goto(-160,-250)
 pendown()
-
 width(10)
 color("brown")
-
 left(128)
 fd(90)
-
 right(128)
 
 #poutre du  haut
 penup()
 goto(-260,200)
 pendown()
-
 width(10)
 color("brown")
-
 left(0)
 fd(400)
-
 right(0)
 
 #corde
