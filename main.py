@@ -6,6 +6,7 @@ import uuid
 import turtle
 import json
 from datetime import datetime
+import random
 
 def get_mac():
   mac_num = hex(uuid.getnode()).replace('0x', '').upper()
@@ -85,15 +86,13 @@ def server(port):
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	host_name = get_ip()
 	sock.bind((host_name, port))
+	sock.listen(5)
+	client, address = sock.accept()
+	print ("{} connected".format( address ))
 	while True:
-		print('lol of serveur')
-		sock.listen(5)
-		client, address = sock.accept()
-		print ("{} connected".format( address ))
 		response = client.recv(255).decode("utf-8")
 		print('Client->Server:')
 		print(response)
-		
 		try:
 			tab = json.loads(response)
 			if 'MAC' in tab:
@@ -102,22 +101,22 @@ def server(port):
 					game[macClient] = {}
 					#gérer les options ici
 					date=str(datetime.now().time().hour) + '-' + str(datetime.now().time().minute) + '-' + str(datetime.now().time().second)
-					game[macClient] = {'mot': '', 'nbTry': 0, 'TimeStart': date}
+					game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': date}
 					senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': 'ok'}, client)
 				else :
-					if tab['MAC'] in game and 'command' in tab:
+					if macClient in game and 'command' in tab:
 						valeur = {}
-						if 'chooseWord' in tab['command']:
+						if tab['command'] == 'chooseWord':
 							game[macClient][mot] = MotRandom('liste_francais.txt')
 							valeur = {'MAC':'SERVER', 'command': 'chooseWord', 'param': 'ok'}
-						elif 'checkLetter' in tab['command']:
-							game[macClient][nbTry] = game[macClient][nbTry] + 1
-							if inWord(game[macClient][mot], tab['param']):
+						elif tab['command'] == 'checkLetter':
+							game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
+							if inWord(game[macClient]['mot'], tab['param']):
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ok'}
 								##remplacer -- par lettre
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
-						elif 'checkWord' in tab['command']:
+						elif tab['command'] == 'checkWord':
 							if tab['param'] == game[macClient][mot] :
 								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ok' }
 							else:
