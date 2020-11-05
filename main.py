@@ -7,6 +7,13 @@ import turtle
 import json
 from datetime import datetime
 
+def SecondeEnDate(time):
+  day = str(int(time/86400))
+  heure = str(int((time%86400)/3600))
+  minute = str(int((time%3600)/60))
+  seconde = str(int(time%60))
+  return day+'-'+heure+'-'+minute+'-'+seconde    
+
 def get_mac():
   mac_num = hex(uuid.getnode()).replace('0x', '').upper()
   mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
@@ -73,7 +80,7 @@ def verifIPport(IPPort) :
 def MotRandom(ficdico) :
 	liste=open(ficdico,'rb')
 	dico=liste.read().decode('utf-8')
-	dicobon=dico.split("\n")
+	dicobon=dico.split("\r\n")
 	mot=random.choice(dicobon)
 	return mot
 
