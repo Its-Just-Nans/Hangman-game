@@ -5,14 +5,39 @@ import sys
 import uuid
 import turtle
 import json
-
+from datetime import datetime
 
 def get_mac():
   mac_num = hex(uuid.getnode()).replace('0x', '').upper()
   mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
   return mac
 
- 
+def copie(ip):
+	app.clipboard_clear()
+	app.clipboard_append(ip)
+
+def giveIndex(mot, lettre) :
+	return [i for i, x in enumerate(mot) if x == lettre]
+
+def inWord(word, letter) :
+	if letter in list(word):
+		return True
+	else:
+		return False
+
+def get_ip():
+	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	try:
+		# doesn't even have to be reachable
+		s.connect(('10.255.255.255', 1))
+		IP = s.getsockname()[0]
+	except Exception:
+		IP = '127.0.0.1'
+	finally:
+		s.close()
+	return IP
+
+
 def Transform(mot):
 	mot=mot.translate({ord('é'):'e', ord('à'):'a', ord('è'):'e', ord('ê'):'e', ord('ù'):'u', ord('ç'):'c', ord('ô'):'o', ord('î'):'i', ord('ï'):'i', ord('â'):'a'	})
 	return mot
@@ -20,53 +45,6 @@ def Transform(mot):
 
 def giveIndex(mot, lettre) :
 	return [i for i, x in enumerate(mot) if x == lettre]
-
-
-#
-#Fonction qui permet de créer le serveur en ouvrant une socket
-def server(port):
-	global sock
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	host_name = get_ip()
-	sock.bind((host_name, port))
-	sock.listen(5)
-	while True:
-		client, address = sock.accept()
-		print ("{} connected".format( address ))
-		response = client.recv(255).decode("utf-8")
-		print('Client->Server:')
-		print(response)
-		try:
-			tab = json.loads(response)
-			print('tab')
-			print(tab)
-			print(tab['MAC'])
-			print(tab['command'])
-			if 'getLetter' in response:
-				print("il a l'attribut")
-				valeur = {'MAC':'SERVEUR', 'command': 'getLetter', 'argument': MotRandom('liste_francais.txt') }
-				print('Server->Client')
-				sender(custom, valeur)
-		except Exception as e:
-			print(e)
-		print('serveurSend ?')
-
-
-
-
-def sender(varString, var):
-	if varString == 'sendMAC' :
-		valeur = json.dumps({'MAC': str(get_mac())}).encode()
-		sock.send(valeur)
-	elif varString == 'getLetter' :
-		valeur = json.dumps({'MAC': str(get_mac()), 'command' : 'getLetter'}).encode()
-		sock.send(valeur)
-	elif varString == 'custom' :
-		sock.send(var)
-	else:
-		pass
-	print(valeur)
-
 
 
 #Fonction pour checker l'input combinant adresse ip et port
@@ -99,32 +77,109 @@ def MotRandom(ficdico) :
 	mot=random.choice(dicobon)
 	return mot
 
+
+#
+#Fonction qui permet de créer le serveur en ouvrant une socket
+def server(port):
+	global sock
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	host_name = get_ip()
+	sock.bind((host_name, port))
+	while True:
+		print('lol of serveur')
+		sock.listen(5)
+		client, address = sock.accept()
+		print ("{} connected".format( address ))
+		response = client.recv(255).decode("utf-8")
+		print('Client->Server:')
+		print(response)
+		
+		try:
+			tab = json.loads(response)
+			if 'MAC' in tab:
+				macClient = tab['MAC']
+				if 'command' in tab and tab['command'] == 'startGame':
+					game[macClient] = {}
+					#gérer les options ici
+					date=str(datetime.now().time().hour) + '-' + str(datetime.now().time().minute) + '-' + str(datetime.now().time().second)
+					game[macClient] = {'mot': '', 'nbTry': 0, 'TimeStart': date}
+					senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': 'ok'}, client)
+				else :
+					if tab['MAC'] in game and 'command' in tab:
+						valeur = {}
+						if 'chooseWord' in tab['command']:
+							game[macClient][mot] = MotRandom('liste_francais.txt')
+							valeur = {'MAC':'SERVER', 'command': 'chooseWord', 'param': 'ok'}
+						elif 'checkLetter' in tab['command']:
+							game[macClient][nbTry] = game[macClient][nbTry] + 1
+							if inWord(game[macClient][mot], tab['param']):
+								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ok'}
+								##remplacer -- par lettre
+							else:
+								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
+						elif 'checkWord' in tab['command']:
+							if tab['param'] == game[macClient][mot] :
+								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ok' }
+							else:
+								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
+						if valeur != {}:
+							print('Server->Client')
+							senderServer(valeur, client)
+					else:
+						pass
+		except Exception as e:
+			print('Error')
+			print(e)
+
+def senderServer(var, client):
+	var['MAC'] = 'SERVER'
+	toSend = json.dumps(var).encode()
+	client.sendall(toSend)
+
+def sender(var):
+	var['MAC'] = id
+	toSend = json.dumps(var).encode()
+	try:	
+		sock.sendall(toSend)
+	except Exception as e:
+		print('Error')
+		print(e)
+
+
 #
 #Fonction qui permet de créer le client en ouvrant une socket
 def client(chaine):
 	global sock
-	try:
-		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		address = chaine.split(':')[0]
-		port = int(chaine.split(':')[1])
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	address = chaine.split(':')[0]
+	port = int(chaine.split(':')[1])
+	try :
 		print('Essaie de connection avec : ' + address + ':' + str(port))
 		sock.connect((address, port))
 		while True:
+			print('lol')
 			response = sock.recv(255).decode("utf-8")
-			print(response)
-			response = json.loads(response)
+			print('server->Client:')
 			print(response)
 			try:
-				if hasattr(response, 'getLetter'):
-					valeur = {'MAC':'SERVEUR', 'command': 'getLetter', 'argument': MotRandom('dico.txt') }
-					send(valeur)
-			except:
-				pass
-			if response != "":
-				print('Client->Server:')
-				print(response)
-			else:
-				return	
+				tab = json.loads(response)
+				if 'command' in tab:
+					macClient = tab['MAC']
+					if tab['command'] == 'startGame' :
+						if tab['param'] == 'ok':
+							user_display(3)
+						else:
+							pass
+					elif tab['command'] == 'checkLetter' :
+						if tab['param'] == 'ok':
+							print('good letter')
+						else:
+							pass
+					else :
+						pass
+			except Exception as e:
+				print('Error')
+				print(e)
 	except Exception as e:
 		print(e)
 		if hasattr(app, 'labelBug2'):
@@ -201,20 +256,31 @@ def user_display(step):
 				thread.start()
 				app.label.destroy()
 				if not hasattr(app, 'button_saisi'):
-					app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : user_display(3) )
+					app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : sender({'command': 'startGame', 'param': ''}) )
 					app.button_saisi.pack()
 		elif step == 3:
 			app.button_saisi.destroy()
 			app.label.destroy()
+			app.button =  tk.Button(app, text="Envoyer", fg="blue", command=lambda : user_display(4) )
+			app.button.pack(side="bottom")
+			app.saisi = tk.Entry(app, width=20 )
+			app.saisi.pack(side="bottom")
 			canvas = tk.Canvas(app, width = 500, height = 500)
 			canvas.pack()
 			t = turtle.RawTurtle(canvas)
 			t.speed("fast")
-			print('Client->Server')
-			sender('getLetter', '')
-			#TODO afficher options de jeu
+			t.hideturtle()
 		elif step == 4:
-			pass
+			print('step 4')
+			notFinish = True
+			choix = app.saisi.get()
+			if len(choix) == 1:
+				sender({'command': 'checkLetter', 'param': choix})
+			elif len(choix) > 1:
+				sender({'command': 'checkWord', 'param': choix})
+			else:
+				print('il tente rien le fou')
+				
 
 def server_display(step):
 	global user_choix
@@ -250,23 +316,7 @@ def server_display(step):
 		elif step == 2:
 			pass
 
-def copie(ip):
-	app.clipboard_clear()
-	app.clipboard_append(ip)
 
-
-
-def get_ip():
-	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	try:
-		# doesn't even have to be reachable
-		s.connect(('10.255.255.255', 1))
-		IP = s.getsockname()[0]
-	except Exception:
-		IP = '127.0.0.1'
-	finally:
-		s.close()
-	return IP
 
 def run(state):
 	if state == '2':
@@ -295,10 +345,14 @@ except:
 global nomJeu
 global user_choix
 global thread
+global game
+global id
+id = get_mac()
+game = {}
 nomJeu = 'S℧sℙ℈ℼd℧s'
 port= 1500
 print('Bienvenue sur '+ nomJeu)
-terminal = '-i'
+
 if terminal == '-t':
 	choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
 	#TODO check error
@@ -321,3 +375,13 @@ else :
 print('Vous avez quitté ' + nomJeu + ', à bientôt')
 
 #https://broux.developpez.com/articles/c/sockets/
+
+
+# >>> import datetime
+# >>> first_time = datetime.datetime.now()
+# >>> later_time = datetime.datetime.now()
+# >>> difference = later_time - first_time
+# >>> seconds_in_day = 24 * 60 * 60
+# datetime.timedelta(0, 8, 562000)
+# >>> divmod(difference.days * seconds_in_day + difference.seconds, 60)
+# (0, 8) 
