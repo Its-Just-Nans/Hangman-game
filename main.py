@@ -100,14 +100,14 @@ def server(port):
 				if 'command' in tab and tab['command'] == 'startGame':
 					game[macClient] = {}
 					#gérer les options ici
-					date=str(datetime.now().time().hour) + '-' + str(datetime.now().time().minute) + '-' + str(datetime.now().time().second)
-					game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': date}
+					time=int(time.time())
+					game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': time}
 					senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': 'ok'}, client)
 				else :
 					if macClient in game and 'command' in tab:
 						valeur = {}
 						if tab['command'] == 'chooseWord':
-							game[macClient][mot] = MotRandom('liste_francais.txt')
+							game[macClient]['mot'] = MotRandom('liste_francais.txt')
 							valeur = {'MAC':'SERVER', 'command': 'chooseWord', 'param': 'ok'}
 						elif tab['command'] == 'checkLetter':
 							game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
@@ -118,7 +118,8 @@ def server(port):
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
 						elif tab['command'] == 'checkWord':
 							if tab['param'] == game[macClient][mot] :
-								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ok' }
+								game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
+								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': convert(game[macClient]['time']) }
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
 						if valeur != {}:
@@ -165,10 +166,10 @@ def client(chaine):
 				if 'command' in tab:
 					macClient = tab['MAC']
 					if tab['command'] == 'startGame' :
-						if tab['param'] == 'ok':
-							user_display(3)
+						if tab['param'] == 'ko':
+							#afficher message erreur
 						else:
-							pass
+							user_display(3)
 					elif tab['command'] == 'checkLetter' :
 						if tab['param'] == 'ok':
 							print('good letter')
@@ -267,8 +268,8 @@ def user_display(step):
 			canvas = tk.Canvas(app, width = 500, height = 500)
 			canvas.pack()
 			t = turtle.RawTurtle(canvas)
-			t.speed("fast")
 			t.hideturtle()
+			t.speed("fast")
 		elif step == 4:
 			print('step 4')
 			notFinish = True
