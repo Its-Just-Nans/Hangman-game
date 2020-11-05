@@ -8,6 +8,13 @@ import json
 from datetime import datetime
 import random
 
+def letteTire(mot,motAct,lettre) :
+  posi= giveIndex(mot, lettre)
+  newWord= motAct
+  for i in posi :
+    newWord = newWord[:i]+lettre+newWord[(i+1):] 
+  return newWord
+
 def SecondeEnDate(time):
   day = str(int(time/86400))
   heure = str(int((time%86400)/3600))
