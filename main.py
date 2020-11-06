@@ -5,7 +5,7 @@ import sys
 import uuid
 import turtle
 import json
-from datetime import datetime
+import time
 import random
 
 def letteTire(mot,motAct,lettre) :
@@ -30,9 +30,6 @@ def get_mac():
 def copie(ip):
 	app.clipboard_clear()
 	app.clipboard_append(ip)
-
-def giveIndex(mot, lettre) :
-	return [i for i, x in enumerate(mot) if x == lettre]
 
 def inWord(word, letter) :
 	if letter in list(word):
@@ -114,8 +111,8 @@ def server(port):
 				if 'command' in tab and tab['command'] == 'startGame':
 					game[macClient] = {}
 					#gérer les options ici
-					time=int(time.time())
-					game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': time}
+					temp=int(time.time())
+					game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': temp}
 					senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': 'ok'}, client)
 				else :
 					if macClient in game and 'command' in tab:
@@ -131,13 +128,12 @@ def server(port):
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
 						elif tab['command'] == 'checkWord':
-							if tab['param'] == game[macClient][mot] :
+							if tab['param'] == game[macClient]['mot'] :
 								game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
-								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': convert(game[macClient]['time']) }
+								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': SecondeEnDate(game[macClient]['time']) }
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
 						if valeur != {}:
-							print('Server->Client')
 							senderServer(valeur, client)
 					else:
 						pass
@@ -181,14 +177,26 @@ def client(chaine):
 					macClient = tab['MAC']
 					if tab['command'] == 'startGame' :
 						if tab['param'] == 'ko':
+							pass
 							#afficher message erreur
 						else:
 							user_display(3)
 					elif tab['command'] == 'checkLetter' :
-						if tab['param'] == 'ok':
-							print('good letter')
+						if tab['param'] == 'ko':
+							app.saisi.delete(0, 'end')
 						else:
-							pass
+							#bonne lettre, on verifie s'il a trouvé le mot
+							if '-' in app.saisi.get() :
+								#changer l'affichage
+								pass
+							else :
+								print('WINN')
+					elif tab['command'] == 'checkWord' :
+						if tab['param'] == 'ok':
+							print('wiiiiiiiiiiiinnnnnnnnnnnnnnnnnnn')
+						else:
+							app.saisi.delete(0, 'end')
+							#nextStep()
 					else :
 						pass
 			except Exception as e:
@@ -285,15 +293,17 @@ def user_display(step):
 			t.hideturtle()
 			t.speed("fast")
 		elif step == 4:
-			print('step 4')
 			notFinish = True
 			choix = app.saisi.get()
-			if len(choix) == 1:
-				sender({'command': 'checkLetter', 'param': choix})
-			elif len(choix) > 1:
-				sender({'command': 'checkWord', 'param': choix})
-			else:
-				print('il tente rien le fou')
+			if(' ' not in choix) :
+				if len(choix) == 1:
+					#il y a une seule lettre
+					sender({'command': 'checkLetter', 'param': choix})
+				elif len(choix) > 1:
+					#il y a plusieurs lettre, c'est mot
+					sender({'command': 'checkWord', 'param': choix})
+					
+			
 				
 
 def server_display(step):
@@ -345,7 +355,7 @@ def run(state):
 		user_display(2)
 		user_display(3)
 		user_display(4)
-		user_display(7)
+		user_display(5)
 
 
 ###########################MAIN####################
@@ -363,7 +373,7 @@ global game
 global id
 id = get_mac()
 game = {}
-nomJeu = 'S℧sℙ℈ℼd℧s'
+nomJeu = 'HANGMAN'
 port= 1500
 print('Bienvenue sur '+ nomJeu)
 
