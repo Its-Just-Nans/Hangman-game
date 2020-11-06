@@ -49,6 +49,165 @@ def get_ip():
 		s.close()
 	return IP
 
+def printNextStep():
+	#function qui sert a afficher le pendu
+	if terminal == '-t':
+		#affichage terminal
+		if step == 1:
+			print('''
+			   ║
+			   ║
+			   ║
+			   ║
+			   ║
+			   ║''')
+		elif step == 2:
+			print('''
+			   ║
+			   ║
+			   ║
+			   ║
+			   ║
+			   ║
+			═══╩═══════════''')
+		elif step == 3:
+			print('''
+			   ║  /
+			   ║ /
+			   ║/
+			   ║
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 4:
+			print('''
+			═══╦═════════════╦
+			   ║  /
+			   ║ /
+			   ║/
+			   ║
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 5:
+			print('''
+			═══╦═════════════╦
+			   ║  /          ║
+			   ║ /
+			   ║/
+			   ║
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 6:
+			print('''
+			═══╦═════════════╦
+			   ║  /          ║
+			   ║ /           ○
+			   ║/
+			   ║
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 7:
+			print('''
+			═══╦═════════════╦
+			   ║  /          ║
+			   ║ /           ○
+			   ║/            |
+			   ║
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 8:
+			print('''
+			═══╦═════════════╦
+			   ║  /          ║
+			   ║ /           ○
+			   ║/           /|
+			   ║
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 9:
+			print('''
+			═══╦═════════════╦
+			   ║  /          ║
+			   ║ /           ○
+			   ║/           /|\
+			   ║
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 10:
+			print('''
+			═══╦═════════════╦
+			   ║  /          ║
+			   ║ /           ○
+			   ║/           /|\
+			   ║            /
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 11:
+			print('''
+			═══╦═════════════╦
+			   ║  /          ║
+			   ║ /           ○
+			   ║/           /|\
+			   ║            / \
+			  /║
+			 / ║
+			═══╩═══════════''')
+		elif step == 12:
+			print('''
+			═══╦═════════════╦     (dead)
+			   ║  /          ║ . ¨
+ 			   ║ /           ○
+			   ║/           /|\
+			   ║            / \
+			  /║
+			 / ║
+			═══╩═══════════''')
+
+	else:
+		#affichage tkinter
+		if step == 1:
+			t.penup()
+			t.goto(-90,-250)
+			t.pendown()
+		elif step == 2:
+			pass
+		elif step == 3:
+			pass
+		elif step == 4:
+			pass
+		elif step == 5:
+			pass
+		elif step == 6:
+			pass
+		elif step == 7:
+			pass
+		elif step == 8:
+			pass
+		elif step == 9:
+			pass
+		elif step == 10:
+			pass
+		elif step == 11:
+			pass
+		elif step == 12:
+			pass
+ 
+def displayLetters():
+	#fonction qui gere l'affichage des lettres
+	if terminal == '-t':
+		#affichage terminal
+		pass
+	else:
+		pass
+		#affichage tkinter
+
 
 def Transform(mot):
 	mot=mot.translate({ord('é'):'e', ord('à'):'a', ord('è'):'e', ord('ê'):'e', ord('ù'):'u', ord('ç'):'c', ord('ô'):'o', ord('î'):'i', ord('ï'):'i', ord('â'):'a'	})
@@ -218,9 +377,6 @@ def client(chaine):
 #Fonction qui fait l'affichage client (sert a relier le thread de socket avec le thread de tkinter
 #Cette fonction varie en beaucoup en fonction de la valeur de la variable terminal
 def user_display(step):
-	global user_choix
-	global thread
-	global terminal
 	if terminal == '-t':
 		if step == 1:
 			print('Vous êtes désormais un joueur Suspensus')
@@ -371,6 +527,7 @@ global user_choix
 global thread
 global game
 global id
+global etape
 id = get_mac()
 game = {}
 nomJeu = 'HANGMAN'
