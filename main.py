@@ -8,7 +8,7 @@ import json
 import time
 import random
 
-def letteTire(mot,motAct,lettre) :
+def lettreTire(mot,motAct,lettre) :
   posi= giveIndex(mot, lettre)
   newWord= motAct
   for i in posi :
@@ -198,6 +198,7 @@ def printNextStep():
 			pass
 		elif step == 12:
 			pass
+	step = step + 1
  
 def displayLetters():
 	#fonction qui gere l'affichage des lettres
@@ -240,6 +241,10 @@ def verifIPport(IPPort) :
 	else :
 		return False
 
+def endGameConnection():
+	global param
+	if param == '':
+		print('Le serveur n\'a pas répondu')
 
 def MotRandom(ficdico) :
 	liste=open(ficdico,'rb')
@@ -248,6 +253,9 @@ def MotRandom(ficdico) :
 	mot=random.choice(dicobon)
 	return mot
 
+def changeWordInDash(word):
+	#TODO il donne un mot, cela renvoie une chaine de tiret de la longeur du mot aide : len() pour avoir la longeur
+	return '-----'
 
 #
 #Fonction qui permet de créer le serveur en ouvrant une socket
@@ -272,7 +280,8 @@ def server(port):
 					#gérer les options ici
 					temp=int(time.time())
 					game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': temp}
-					senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': 'ok'}, client)
+					game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
+					senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': game[macClient]['fakeMot']}, client)
 				else :
 					if macClient in game and 'command' in tab:
 						valeur = {}
@@ -282,8 +291,10 @@ def server(port):
 						elif tab['command'] == 'checkLetter':
 							game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
 							if inWord(game[macClient]['mot'], tab['param']):
-								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ok'}
 								##remplacer -- par lettre
+								game[macClient]['fakeMot'] = def lettreTire(game[macClient]['mot'],game[macClient]['fakeMot'],tab['param'])
+								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ok'}
+								
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
 						elif tab['command'] == 'checkWord':
@@ -318,6 +329,7 @@ def sender(var):
 #
 #Fonction qui permet de créer le client en ouvrant une socket
 def client(chaine):
+	global param
 	global sock
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	address = chaine.split(':')[0]
@@ -326,7 +338,6 @@ def client(chaine):
 		print('Essaie de connection avec : ' + address + ':' + str(port))
 		sock.connect((address, port))
 		while True:
-			print('lol')
 			response = sock.recv(255).decode("utf-8")
 			print('server->Client:')
 			print(response)
@@ -336,10 +347,12 @@ def client(chaine):
 					macClient = tab['MAC']
 					if tab['command'] == 'startGame' :
 						if tab['param'] == 'ko':
-							pass
-							#afficher message erreur
+							print('error')
 						else:
+							print(param)
+							param = tab['param']
 							user_display(3)
+							#affichier les mots
 					elif tab['command'] == 'checkLetter' :
 						if tab['param'] == 'ko':
 							app.saisi.delete(0, 'end')
@@ -355,7 +368,7 @@ def client(chaine):
 							print('wiiiiiiiiiiiinnnnnnnnnnnnnnnnnnn')
 						else:
 							app.saisi.delete(0, 'end')
-							#nextStep()
+							printNextStep()
 					else :
 						pass
 			except Exception as e:
@@ -377,6 +390,7 @@ def client(chaine):
 #Fonction qui fait l'affichage client (sert a relier le thread de socket avec le thread de tkinter
 #Cette fonction varie en beaucoup en fonction de la valeur de la variable terminal
 def user_display(step):
+	global param
 	if terminal == '-t':
 		if step == 1:
 			print('Vous êtes désormais un joueur Suspensus')
@@ -386,10 +400,30 @@ def user_display(step):
 			thread = threading.Thread(target=client, args=([entry]) )
 			thread.daemon = True
 			thread.start()
-		elif step == 2:
-			print('TO DO')
+			print('Choix Option')
+			#Mettre les options de jeux ici
+			entry = input('1->Commencer\n')
+			while entry != '1' :
+				entry = input('1->Commencer la partie\n')
+			sender({'command': 'startGame', 'param': ''})
+			while param == '':
+				time.sleep(0.5)
 		elif step == 3:
-			print('TO DO')
+			print('Mot à choisir : '+ param )
+			entry = input('Veuillez saisir une lettre ou un mot :\n')
+			#TODO Faire fonction de vérif le choix
+			if(' ' not in choix) :
+				if len(choix) == 1:
+					#il y a une seule lettre
+					sender({'command': 'checkLetter', 'param': choix})
+				elif len(choix) > 1:
+					#il y a plusieurs lettre, c'est mot
+					sender({'command': 'checkWord', 'param': choix})
+				else : 
+					entry = input('Veuillez saisir une lettre ou un mot :\n')
+			else :
+				entry = input('Veuillez saisir une lettre ou un mot :\n')
+
 		elif step == 4:
 			print('TO DO')
 			
@@ -506,12 +540,6 @@ def run(state):
 		server_display(4)
 		server_display(5)
 		server_display(6)
-	elif state == '1':
-		user_display(1)
-		user_display(2)
-		user_display(3)
-		user_display(4)
-		user_display(5)
 
 
 ###########################MAIN####################
@@ -528,19 +556,24 @@ global thread
 global game
 global id
 global etape
+global param
+param = ''
 id = get_mac()
 game = {}
 nomJeu = 'HANGMAN'
 port= 1500
 print('Bienvenue sur '+ nomJeu)
-
+#terminal = '-t'
 if terminal == '-t':
 	choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
 	#TODO check error
 	while(choix != '2' and choix != '1') :
 		choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
-	run(choix)
-else : 
+	if(choix == '1'):
+		user_display(1)
+	else:
+		run(2)
+else :
 	global app
 	app = tk.Tk()
 	app.geometry('400x400')
