@@ -50,10 +50,12 @@ def get_ip():
 	return IP
 
 def printNextStep():
+	global t
+	global etape
 	#function qui sert a afficher le pendu
 	if terminal == '-t':
 		#affichage terminal
-		if step == 1:
+		if etape == 1:
 			print('''
 			   ║
 			   ║
@@ -61,7 +63,7 @@ def printNextStep():
 			   ║
 			   ║
 			   ║''')
-		elif step == 2:
+		elif etape == 2:
 			print('''
 			   ║
 			   ║
@@ -70,7 +72,7 @@ def printNextStep():
 			   ║
 			   ║
 			═══╩═══════════''')
-		elif step == 3:
+		elif etape == 3:
 			print('''
 			   ║  /
 			   ║ /
@@ -79,7 +81,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 4:
+		elif etape == 4:
 			print('''
 			═══╦═════════════╦
 			   ║  /
@@ -89,7 +91,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 5:
+		elif etape == 5:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -99,7 +101,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 6:
+		elif etape == 6:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -109,7 +111,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 7:
+		elif etape == 7:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -119,7 +121,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 8:
+		elif etape == 8:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -129,76 +131,76 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 9:
+		elif etape == 9:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
 			   ║ /           ○
-			   ║/           /|\
+			   ║/           /|\\
 			   ║
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 10:
+		elif etape == 10:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
 			   ║ /           ○
-			   ║/           /|\
+			   ║/           /|\\
 			   ║            /
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 11:
+		elif etape == 11:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
 			   ║ /           ○
-			   ║/           /|\
-			   ║            / \
+			   ║/           /|\\
+			   ║            / \\
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif step == 12:
+		elif etape == 12:
 			print('''
 			═══╦═════════════╦     (dead)
 			   ║  /          ║ . ¨
  			   ║ /           ○
-			   ║/           /|\
-			   ║            / \
+			   ║/           /|\\
+			   ║            / \\
 			  /║
 			 / ║
 			═══╩═══════════''')
 
 	else:
 		#affichage tkinter
-		if step == 1:
+		if etape == 1:
 			t.penup()
 			t.goto(-90,-250)
 			t.pendown()
-		elif step == 2:
+		elif etape == 2:
 			pass
-		elif step == 3:
+		elif etape == 3:
 			pass
-		elif step == 4:
+		elif etape == 4:
 			pass
-		elif step == 5:
+		elif etape == 5:
 			pass
-		elif step == 6:
+		elif etape == 6:
 			pass
-		elif step == 7:
+		elif etape == 7:
 			pass
-		elif step == 8:
+		elif etape == 8:
 			pass
-		elif step == 9:
+		elif etape == 9:
 			pass
-		elif step == 10:
+		elif etape == 10:
 			pass
-		elif step == 11:
+		elif etape == 11:
 			pass
-		elif step == 12:
+		elif etape == 12:
 			pass
-	step = step + 1
+	etape = etape + 1
  
 def displayLetters():
 	#fonction qui gere l'affichage des lettres
@@ -283,6 +285,7 @@ def server(port):
 					#gérer les options ici
 					temp=int(time.time())
 					game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': temp}
+					print('le  mot est ' + game[macClient]['mot'])
 					game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
 					senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': game[macClient]['fakeMot']}, client)
 				else :
@@ -297,7 +300,7 @@ def server(port):
 							if inWord(game[macClient]['mot'], tab['param']):
 								##remplacer -- par lettre
 								game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
-								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ok'}
+								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}
 								
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
@@ -357,12 +360,16 @@ def client(chaine):
 							print(param)
 							param = tab['param']
 							#affichier les mots
+							if terminal != '-t':
+								user_display(3)
+							
 					elif tab['command'] == 'checkLetter' :
 						if tab['param'] == 'ko':
 							app.saisi.delete(0, 'end')
+							printNextStep()
 						else:
 							#bonne lettre, on verifie s'il a trouvé le mot
-							if '-' in app.saisi.get() :
+							if '-' in tab['param'] :
 								#changer l'affichage
 								pass
 							else :
@@ -395,6 +402,7 @@ def client(chaine):
 #Cette fonction varie en beaucoup en fonction de la valeur de la variable terminal
 def user_display(step):
 	global param
+	global t
 	if terminal == '-t':
 		if step == 1:
 			print('Vous êtes désormais un joueur Suspensus')
@@ -560,6 +568,7 @@ global thread
 global game
 global id
 global etape
+etape = 1
 global param
 global sock
 param = ''
