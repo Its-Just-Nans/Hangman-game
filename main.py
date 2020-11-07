@@ -254,8 +254,11 @@ def MotRandom(ficdico) :
 	return mot
 
 def changeWordInDash(word):
-	#TODO il donne un mot, cela renvoie une chaine de tiret de la longeur du mot aide : len() pour avoir la longeur
-	return '-----'
+	#transforme les lettres du mot en tirets
+	string = ''
+	for i in range(len(word)):
+		string = string + '-'
+	return string
 
 #
 #Fonction qui permet de créer le serveur en ouvrant une socket
@@ -289,15 +292,17 @@ def server(port):
 							game[macClient]['mot'] = MotRandom('liste_francais.txt')
 							valeur = {'MAC':'SERVER', 'command': 'chooseWord', 'param': 'ok'}
 						elif tab['command'] == 'checkLetter':
+							#le client demande de vérifier une lettre
 							game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
 							if inWord(game[macClient]['mot'], tab['param']):
 								##remplacer -- par lettre
-								game[macClient]['fakeMot'] = def lettreTire(game[macClient]['mot'],game[macClient]['fakeMot'],tab['param'])
+								game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ok'}
 								
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
 						elif tab['command'] == 'checkWord':
+							#le client demande de vérifier un mot
 							if tab['param'] == game[macClient]['mot'] :
 								game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
 								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': SecondeEnDate(game[macClient]['time']) }
@@ -351,7 +356,6 @@ def client(chaine):
 						else:
 							print(param)
 							param = tab['param']
-							user_display(3)
 							#affichier les mots
 					elif tab['command'] == 'checkLetter' :
 						if tab['param'] == 'ko':
@@ -408,17 +412,18 @@ def user_display(step):
 			sender({'command': 'startGame', 'param': ''})
 			while param == '':
 				time.sleep(0.5)
+			user_display(3)
 		elif step == 3:
 			print('Mot à choisir : '+ param )
 			entry = input('Veuillez saisir une lettre ou un mot :\n')
 			#TODO Faire fonction de vérif le choix
-			if(' ' not in choix) :
-				if len(choix) == 1:
+			if(' ' not in entry) :
+				if len(entry) == 1:
 					#il y a une seule lettre
-					sender({'command': 'checkLetter', 'param': choix})
-				elif len(choix) > 1:
+					sender({'command': 'checkLetter', 'param': entry})
+				elif len(entry) > 1:
 					#il y a plusieurs lettre, c'est mot
-					sender({'command': 'checkWord', 'param': choix})
+					sender({'command': 'checkWord', 'param': entry})
 				else : 
 					entry = input('Veuillez saisir une lettre ou un mot :\n')
 			else :
@@ -532,14 +537,13 @@ def server_display(step):
 
 
 
-def run(state):
-	if state == '2':
-		server_display(1)
-		server_display(2)
-		server_display(3)
-		server_display(4)
-		server_display(5)
-		server_display(6)
+def run():
+	server_display(1)
+	server_display(2)
+	server_display(3)
+	server_display(4)
+	server_display(5)
+	server_display(6)
 
 
 ###########################MAIN####################
@@ -557,6 +561,7 @@ global game
 global id
 global etape
 global param
+global sock
 param = ''
 id = get_mac()
 game = {}
@@ -572,7 +577,7 @@ if terminal == '-t':
 	if(choix == '1'):
 		user_display(1)
 	else:
-		run(2)
+		run()
 else :
 	global app
 	app = tk.Tk()
@@ -585,7 +590,12 @@ else :
 	app.quit = tk.Button(app, text="Quitter", fg="red", command=app.destroy)
 	app.quit.pack(side="bottom")
 	app.mainloop()
+try:
+    sock.close()
+except Exception as e:
+    print(e)
 
+	
 print('Vous avez quitté ' + nomJeu + ', à bientôt')
 
 #https://broux.developpez.com/articles/c/sockets/
