@@ -175,31 +175,167 @@ def printNextStep():
 	else:
 		#affichage tkinter
 		if etape == 1:
+			# Barre du sol
 			t.penup()
 			t.goto(-90,-250)
 			t.pendown()
+			t.width(10)
+			t.color("brown")
+			t.left(180)
+			t.fd(175)
+			t.right(180)
+			t.penup()
 		elif etape == 2:
-			pass
+			# Barre vertical
+			t.goto(-220,-250)
+			t.pendown()
+			t.width(10)
+			t.color("brown")
+			t.left(90)
+			t.fd(450)
+			t.right(90)
+			t.penup()
 		elif etape == 3:
-			pass
+			#petit tchitchou
+			t.goto(-160,-250)
+			t.pendown()
+			t.width(10)
+			t.color("brown")
+			t.left(128)
+			t.fd(90)
+			t.right(128)
+			t.penup()
 		elif etape == 4:
-			pass
+			#poutre du  haut
+			t.goto(-260,200)
+			t.pendown()
+			t.width(10)
+			t.color("brown")
+			t.left(0)
+			t.fd(400)
+			t.right(0)
+			t.penup()
 		elif etape == 5:
-			pass
+			#corde
+			t.goto(120,194)
+			t.pendown()
+			t.width(9)
+			t.color("orange")
+			t.left(-90)
+			t.fd(65)
+			t.right(-90)
+			t.penup()
+			t.goto(118,190)
+			t.pendown()
+			t.width(5)
+			t.color("black")
+			t.left(0)
+			t.fd(5)
+			t.right(0)
+			t.penup()
+			t.goto(118,175)
+			t.pendown()
+			t.width(5)
+			t.color("black")
+			t.left(0)
+			t.fd(5)
+			t.penup()
+			t.goto(118,160)
+			t.pendown()
+			t.width(5)
+			t.color("black")
+			t.left(0)
+			t.fd(5)
+			t.right(0)
+			t.penup()
+			t.goto(118,145)
+			t.pendown()
+			t.width(5)
+			t.color("black")
+			t.left(0)
+			t.fd(5)
+			t.right(0)
+			t.penup()
+			t.goto(118,130)
+			t.pendown()
+			t.width(5)
+			t.color("black")
+			t.left(0)
+			t.fd(5)
+			t.right(0)
+			t.penup()
 		elif etape == 6:
-			pass
+			#tête
+			t.goto(119,123)
+			t.pendown()
+			t.color("red")
+			t.right(90)
+			t.begin_fill()
+			t.circle(20)
+			t.end_fill()
+			t.left(90)
+			t.penup()
 		elif etape == 7:
-			pass
+			#corps		
+			t.goto(118,117)
+			t.pendown()
+			t.width(10)
+			t.color("black")
+			t.left(-90)
+			t.fd(130)
+			t.right(-90)
+			t.penup()
 		elif etape == 8:
-			pass
+			#bras droit
+			t.goto(118,100)
+			t.pendown()
+			t.width(8)
+			t.color("black")
+			t.left(-80)
+			t.fd(75)
+			t.right(-80)
+			t.penup()
 		elif etape == 9:
-			pass
+			#bras gauche
+			t.goto(118,100)
+			t.pendown()
+			t.width(8)
+			t.color("black")
+			t.left(-70)
+			t.fd(70)
+			t.right(-70)
+			t.penup()
 		elif etape == 10:
-			pass
+			#jambe droite
+			t.goto(118,-13)
+			t.pendown()
+			t.width(8)
+			t.color("black")
+			t.left(-80)
+			t.fd(75)
+			t.right(-33)
+			t.fd(20)
+			t.right(-47)
+			t.penup()
 		elif etape == 11:
-			pass
+			#jambe gauche
+			t.goto(118,-13)
+			t.pendown()
+			t.width(8)
+			t.color("black")
+			t.left(-97)
+			t.fd(67)
+			t.right(-30)
+			t.fd(20)
+			t.right(-60)
+			t.penup()
 		elif etape == 12:
-			pass
+			#mot de fin
+			t.goto(-100,0)
+			t.pendown()
+			t.color("red")
+			t.write("PENDU !",font=("Arial", 24, "normal"))
+			t.penup()
 	etape = etape + 1
  
 def displayLetters():
@@ -490,7 +626,7 @@ def user_display(step):
 			app.button.pack(side="bottom")
 			app.saisi = tk.Entry(app, width=20 )
 			app.saisi.pack(side="bottom")
-			canvas = tk.Canvas(app, width = 500, height = 500)
+			canvas = tk.Canvas(app, width = 600, height = 600)
 			canvas.pack()
 			t = turtle.RawTurtle(canvas)
 			t.hideturtle()
