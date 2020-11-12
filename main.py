@@ -395,7 +395,7 @@ def changeWordInDash(word):
 	#transforme les lettres du mot en tirets
 	string = ''
 	for i in range(len(word)):
-		string = string + '-'
+		string = string + '_'
 	return string
 
 #
@@ -434,7 +434,7 @@ def server(port):
 							#le client demande de vérifier une lettre
 							game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
 							if inWord(game[macClient]['mot'], tab['param']):
-								##remplacer -- par lettre
+								##remplacer -_ par lettre
 								game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}
 								
@@ -505,7 +505,7 @@ def client(chaine):
 							printNextStep()
 						else:
 							#bonne lettre, on verifie s'il a trouvé le mot
-							if '-' in tab['param'] :
+							if '_' in tab['param'] :
 								#changer l'affichage
 								pass
 							else :
@@ -631,7 +631,7 @@ def user_display(step):
 			canvas.pack()
 			t = turtle.RawTurtle(canvas)
 			t.hideturtle()
-			t.speed("fast")
+			t.speed("fast") # ou speed(0) pour instant draw
 		elif step == 4:
 			notFinish = True
 			choix = app.saisi.get()
