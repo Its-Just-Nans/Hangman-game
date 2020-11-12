@@ -626,6 +626,7 @@ def user_display(step):
 			app.button.pack(side="bottom")
 			app.saisi = tk.Entry(app, width=20 )
 			app.saisi.pack(side="bottom")
+			app.geometry('600x600')
 			canvas = tk.Canvas(app, width = 600, height = 600)
 			canvas.pack()
 			t = turtle.RawTurtle(canvas)
@@ -726,7 +727,7 @@ if terminal == '-t':
 else :
 	global app
 	app = tk.Tk()
-	app.geometry('400x400')
+	app.geometry('200x200')
 	app.title(nomJeu)
 	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display(1))
 	app.button_server.pack(side="left")
