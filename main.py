@@ -350,16 +350,14 @@ def displayLetters():
 				#affichage terminal
 				pass
 			else:
-				try:
-					tab = app.frame
-					for element in tab :
-						element.destroy()
-				except Exception as e:
-					print(e)
+				app.frame.word = []
 				tabLetter = list(param)
 				count = 0
 				for letter in tabLetter :
-					app.frame.label[count] = tk.Label(app.frame, text = letter, borderwidth = 6, relief="ridge")
+					label = tk.Label(app.frame, text = letter, borderwidth = 4, relief="ridge")
+					label.grid(row=1, column=count)
+					app.frame.word.append(label)
+					count = count+1
 	except Exception as e:
 		print(e)
 
@@ -459,6 +457,7 @@ def server(port):
 						elif tab['command'] == 'checkWord':
 							#le client demande de vérifier un mot
 							if tab['param'] == game[macClient]['mot'] :
+								senderServer({'MAC':'SERVER', 'command': 'checkWord', 'param': game[macClient]['mot'] }, client)
 								game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
 								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': SecondeEnDate(game[macClient]['time']) }
 							else:
@@ -511,7 +510,7 @@ def client(chaine):
 						else:
 							print(param)
 							param = tab['param']
-							#affichier les mots
+							displayLetters()
 							if terminal != '-t':
 								user_display(3)
 							
@@ -520,18 +519,20 @@ def client(chaine):
 							app.saisi.delete(0, 'end')
 							printNextStep()
 						else:
+							param = tab['param']
+							displayLetters()
 							#bonne lettre, on verifie s'il a trouvé le mot
-							if '_' in tab['param'] :
-								#changer l'affichage
-								pass
-							else :
+							if '_' not in tab['param'] :
 								print('WINN')
 					elif tab['command'] == 'checkWord' :
-						if tab['param'] == 'ok':
-							print('wiiiiiiiiiiiinnnnnnnnnnnnnnnnnnn')
-						else:
+						if tab['param'] == 'ko':
 							app.saisi.delete(0, 'end')
 							printNextStep()
+						else:
+							param = tab['param']
+							displayLetters()
+							if '_' not in tab['param'] :
+								print('WINN')
 					else :
 						pass
 			except Exception as e:
@@ -575,6 +576,7 @@ def user_display(step):
 			user_display(3)
 		elif step == 3:
 			print('Mot à choisir : '+ param )
+			#TODO utiliser dispLetters
 			entry = input('Veuillez saisir une lettre ou un mot :\n')
 			#TODO Faire fonction de vérif le choix
 			if(' ' not in entry) :
@@ -642,7 +644,11 @@ def user_display(step):
 			app.button.grid(row=3, column=3)
 			app.saisi = tk.Entry(app, width=20 )
 			app.saisi.grid(row=3, column=1)
-			app.frame = tk.Frame(app, height = 50)
+			app.frame = tk.Frame(app, height = 50, bg="#f50202")
+			app.frame.grid(row=2, column=1, columnspan=3)
+			app.frame.grid_rowconfigure(0, weight=1)
+			app.frame.grid_columnconfigure(0, weight=1)
+
 			displayLetters()
 			#app.geometry('600x600')
 			canvas = tk.Canvas(app, width = 600, height = 600)
@@ -660,6 +666,7 @@ def user_display(step):
 				elif len(choix) > 1:
 					#il y a plusieurs lettre, c'est mot
 					sender({'command': 'checkWord', 'param': choix})
+			
 					
 			
 				
@@ -771,17 +778,17 @@ else :
 	app.title(nomJeu)
 	app.quit = tk.Button(app, text="Quitter", fg="red", command=app.destroy)
 	app.quit.grid(row=4, column=1,columnspan=3)
-	app.mainloop()
+	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display(1))
+	app.button_server.grid(row=2, column=1)
+	app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
+	app.button_client.grid(row=2, column=3)
 	if mode != '':
 		if mode == 'server' :
-			server_display(1)
+			app.button_server.invoke()
 		elif mode == 'client':
-			user_display(1)
-	else :
-		app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display(1))
-		app.button_server.grid(row=2, column=1)
-		app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
-		app.button_client.grid(row=2, column=3)
+			app.button_client.invoke()
+	app.mainloop()
+		
 try:
     sock.close()
 except Exception as e:
