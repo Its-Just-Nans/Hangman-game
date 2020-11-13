@@ -9,7 +9,9 @@ import time
 import random
 
 
-
+#Fonction pour récuperer l'adresse MAC de la socket, elle servira d'identifiant
+#@argument: string -> un mot, string -> le mot en underscore, string -> la lettre
+#@return: string -> l'adresse MAC
 def lettreTire(mot,motAct,lettre) :
   posi= giveIndex(mot, lettre)
   newWord= motAct
@@ -17,6 +19,9 @@ def lettreTire(mot,motAct,lettre) :
     newWord = newWord[:i]+lettre+newWord[(i+1):] 
   return newWord
 
+#fonction pour transformer un temps en seconde en une date (custom)
+#@argument: float -> un temp en seconde
+#@return: string -> la date custom avec des tirets
 def SecondeEnDate(time):
   day = str(int(time/86400))
   heure = str(int((time%86400)/3600))
@@ -24,21 +29,24 @@ def SecondeEnDate(time):
   seconde = str(int(time%60))
   return day+'-'+heure+'-'+minute+'-'+seconde    
 
+#Fonction pour récuperer l'adresse MAC de la socket, elle servira d'identifiant
+#@argument: 
+#@return: string -> l'adresse MAC
 def get_mac():
   mac_num = hex(uuid.getnode()).replace('0x', '').upper()
   mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
   return mac
 
+#Fonction pour copier dans le presse papier, pour copier l'ip
+#@argument: string -> la variable a copier
+#@return:
 def copie(ip):
 	app.clipboard_clear()
 	app.clipboard_append(ip)
 
-def inWord(word, letter) :
-	if letter in list(word):
-		return True
-	else:
-		return False
-
+#Fonction pour simuler une connection et récupérer l'ip
+#@argument: 
+#@return: string -> l'ip
 def get_ip():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	try:
@@ -51,6 +59,9 @@ def get_ip():
 		s.close()
 	return IP
 
+#Fonction pour afficher le dessin
+#@argument: 
+#@return: 
 def printNextStep():
 	global t
 	global etape
@@ -338,8 +349,36 @@ def printNextStep():
 			t.color("red")
 			t.write("PENDU !",font=("Arial", 24, "normal"))
 			t.penup()
-	etape = etape + 1
- 
+	if etape == 12 :
+		endGame()
+	else:
+		etape = etape + 1
+
+
+#Fonction pour gérer la fin de jeu
+#@argument: 
+#@return: 
+def endGame():
+	global etape
+	#TODO JULES afficher le temps qui est dans tab['param']
+	etape = 0
+	if terminal == '-t':
+		choix = input('Que voulez-vous faire ?\n1->Rejouer\n2->Quitter\n')
+		while(choix != '1' and choix != '2') :
+			choix = input('Que voulez-vous faire ?\n1->Rejouer\n2->Quitter\n')
+		if choix == 1:
+			restartGame()
+		elif choix ==2:
+			pass
+	else :
+		app.saisi.destroy()
+		app.button.destroy()
+		app.button =  tk.Button(app, text="Rejouer", fg="blue", command=lambda : restartGame() )
+		app.button.grid(row=3, column=1, columnspan=3)
+
+#Fonction pour afficher le choix les lettres
+#@argument: 
+#@return: 
 def displayLetters():
 	global terminal
 	global param
@@ -352,30 +391,40 @@ def displayLetters():
 				#affichage terminal
 				pass
 			else:
-				app.frame.word = []
+				try:
+					for element in app.word :
+						element.destroy()
+				except :
+					app.word = [] #TODO LE SUPPRIMER
 				tabLetter = list(param)
 				count = 0
 				for letter in tabLetter :
-					label = tk.Label(app.frame, text = letter, borderwidth = 2, relief="ridge")
-					label.grid(row=1, column=count)
+					label = tk.Label(app.frame, text = letter, borderwidth = 2, relief="ridge", font=('Helvetica', 15))
+					label.grid(row=0, column=count)
 					#app.frame.append(label)
-					app.frame.word.append(label)
+					app.word.append(label)
 					count = count+1
 	except Exception as e:
 		if log:
 			print(e)
 
-
+#Fonction pour enlever les accents
+#@argument: string -> mot
+#@return: string -> mot sans accents
 def Transform(mot):
 	mot=mot.translate({ord('é'):'e', ord('à'):'a', ord('è'):'e', ord('ê'):'e', ord('ù'):'u', ord('ç'):'c', ord('ô'):'o', ord('î'):'i', ord('ï'):'i', ord('â'):'a'	})
 	return mot
 
-
+#Fonction pour connaitre l'index d'une lettre dans un mot
+#@argument: string -> mot, string -> une lettre
+#@return: bool -> True or False
 def giveIndex(mot, lettre) :
 	return [i for i, x in enumerate(mot) if x == lettre]
 
 
 #Fonction pour checker l'input combinant adresse ip et port
+#@argument: string -> combinaison 'ip:port'
+#@return: bool -> True or False
 def verifIPport(IPPort) :
 	IPPort=IPPort.split(':')
 	if len(IPPort) == 2 :
@@ -391,17 +440,21 @@ def verifIPport(IPPort) :
 					return False
 			else :
 				return False
-		except e:
+		except Exception as e:
 			print(e)
 			return False
 	else :
 		return False
 
+#TODO
 def endGameConnection():
 	global param
 	if param == '':
 		print('Le serveur n\'a pas répondu')
 
+#choisi un mot random dans un dictionnaire
+#argument: string -> name/path of the ditionnary
+#@return: string -> a random word
 def MotRandom(ficdico) :
 	liste=open(ficdico,'rb')
 	dico=liste.read().decode('utf-8')
@@ -409,15 +462,19 @@ def MotRandom(ficdico) :
 	mot=random.choice(dicobon)
 	return mot
 
+#transforme les lettres du mot en underscore
+#argument: string -> word
+#@return: string -> word in underscore
 def changeWordInDash(word):
-	#transforme les lettres du mot en tirets
 	string = ''
 	for i in range(len(word)):
 		string = string + '_'
 	return string
 
-#
+
 #Fonction qui permet de créer le serveur en ouvrant une socket
+#@argument: entier -> numero de PORT
+#@return: 
 def server(port):
 	global sock
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -452,7 +509,7 @@ def server(port):
 						elif tab['command'] == 'checkLetter':
 							#le client demande de vérifier une lettre
 							game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
-							if inWord(game[macClient]['mot'], tab['param']):
+							if tab['param'] in list(game[macClient]['mot']):
 								##remplacer _ par lettre
 								game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
 								senderServer({'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}, client)
@@ -477,11 +534,17 @@ def server(port):
 			print('Error')
 			print(e)
 
+#Une fonction pour envoyer selon un client
+#@argument: object/dict -> les valeurs a envoyer, object client -> le client
+#@return:
 def senderServer(var, client):
 	var['MAC'] = 'SERVER'
 	toSend = json.dumps(var).encode()
 	client.sendall(toSend)
 
+#Une fonction pour envoyer au serveur
+#@argument: object/dict -> les valeurs a envoyer
+#@return:
 def sender(var):
 	var['MAC'] = id
 	toSend = json.dumps(var).encode()
@@ -492,8 +555,10 @@ def sender(var):
 		print(e)
 
 
-#
+
 #Fonction qui permet de créer le client en ouvrant une socket
+#@argument: string -> combinaison ip:port
+#@return:
 def client(chaine):
 	global param
 	global sock
@@ -503,14 +568,22 @@ def client(chaine):
 	address = chaine.split(':')[0]
 	port = int(chaine.split(':')[1])
 	try :
-		print('Essaie de connection avec : ' + address + ':' + str(port))
+		if log :
+			print('Essaie de connection avec : ' + address + ':' + str(port))
 		sock.connect((address, port))
+		if log :
+			print('Connecté avec : ' + address + ':' + str(port))
+		app.label.destroy()
+	except Exception as e:
+		if log :
+			print(e)
+	try:
 		while True:
 			response = sock.recv(255).decode("utf-8")
 			if log :
 				print('server->Client:')
 				print(response)
-			try:
+			
 				tab = json.loads(response)
 				if 'command' in tab:
 					macClient = tab['MAC']
@@ -520,10 +593,9 @@ def client(chaine):
 						else:
 							print(param)
 							param = tab['param']
-							displayLetters()
 							if terminal != '-t':
 								user_display(3)
-							
+							displayLetters()
 					elif tab['command'] == 'checkLetter' :
 						if tab['param'] == 'ko':
 							app.saisi.delete(0, 'end')
@@ -542,31 +614,20 @@ def client(chaine):
 							displayLetters()
 					elif tab['command'] == 'win' :
 						print('WIN')
-						#TODO JULES afficher le temps qui est dans tab['param']
-						if terminal != '-t':
-							app.canvas.destroy()
-							app.button.destroy()
-							app.saisi.destroy()
+						endGame()
+						
 					else :
 						pass
-			except Exception as e:
-				print('Error')
-				print(e)
 	except Exception as e:
-		print(e)
-		# if hasattr(app, 'labelBug2'):
-		# 	app.labelBug2 = tk.Label(app, text = 'Connexion échouée', fg="red")
-		# 	app.labelBug2..grid(row=1, column=1, columnspan=3)
-		# app.saisi_Client = tk.Entry(app, width=20)
-		# app.saisi_Client.pack(side="left")
-		# app.button_saisi = tk.Button(app, text="Se connecter", fg="blue", command=lambda : user_display(2) )
-		# app.button_saisi.pack(side="right")
-		# app.label.destroy()
+		if log :
+			print('Error socket :')
+			print(e)
 
 
-#
+
 #Fonction qui fait l'affichage client (sert a relier le thread de socket avec le thread de tkinter
-#Cette fonction varie en beaucoup en fonction de la valeur de la variable terminal
+#@argument: entier -> l'étape
+#@return:
 def user_display(step):
 	global param
 	global t
@@ -593,7 +654,6 @@ def user_display(step):
 			print('Mot à choisir : '+ param )
 			#TODO utiliser dispLetters
 			entry = input('Veuillez saisir une lettre ou un mot :\n')
-			#TODO Faire fonction de vérif le choix
 			if(' ' not in entry) :
 				if len(entry) == 1:
 					#il y a une seule lettre
@@ -621,37 +681,21 @@ def user_display(step):
 		elif step == 2:
 			entry = app.saisi_Client.get()
 			if not verifIPport(entry):
-				try :
-					app.labelBug.destroy()
-				except :
-					pass
-				app.saisi_Client.destroy()
-				app.button_saisi.destroy()
-				if 'labelBug2' not in app:
-					app.labelBug = tk.Label(app, text = 'Mauvaise Ip veuillez recommencer', fg="red")
-					app.labelBug.grid(row=1, column=1, columnspan=3)
-				app.saisi_Client = tk.Entry(app, width=20 )
-				app.saisi_Client.grid(row=2, column=1)
-				app.button_saisi = tk.Button(app, text="Se connecter", fg="blue", command=lambda : user_display(2) )
-				app.button_saisi.grid(row=2, column=3)
-			else :
-				try :
-					app.labelBug.destroy()
-					app.labelBug2.destroy()
-				except :
-					pass
-				app.label = tk.Label(app, text= 'Connection à ' + entry +' ')
+				app.saisi_Client.delete(0, 'end')
+				app.label = tk.Label(app, text="Erreur dans l'adresse, veuillez saisir IP:Port", fg="red")
 				app.label.grid(row=1, column=1, columnspan=3)
+			else :
 				app.button_saisi.destroy()
-				del app.button_saisi
 				app.saisi_Client.destroy()
-				thread = threading.Thread(target=client, args=([entry]) )
-				thread.daemon = True
-				thread.start()
-				app.label.destroy()
-				if not hasattr(app, 'button_saisi'):
-					app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : sender({'command': 'startGame', 'param': ''}) )
-					app.button_saisi.grid(row=1, column=1, columnspan=3)
+				try :
+					app.label['text'] = 'Connection à ' + entry
+				except AttributeError:
+					app.label = tk.Label(app, text='Connection à ' + entry)
+					app.label.grid(row=1, column=1, columnspan=3)
+				startThread(entry)
+				#TODO ICI METTRE OTPION
+				app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : sender({'command': 'startGame', 'param': ''}) )
+				app.button_saisi.grid(row=1, column=1, columnspan=3)
 		elif step == 3:
 			app.button_saisi.destroy()
 			app.label.destroy()
@@ -659,13 +703,12 @@ def user_display(step):
 			app.button.grid(row=3, column=3)
 			app.saisi = tk.Entry(app, width=20 )
 			app.saisi.grid(row=3, column=1)
+			#On créer une frame pour le mot
 			app.frame = tk.Frame(app, height = 50, bg="#f50202")
 			app.frame.grid(row=2, column=1, columnspan=3)
 			app.frame.grid_rowconfigure(0, weight=1)
-			app.frame.grid_columnconfigure(0, weight=1)
 
-			displayLetters()
-			#app.geometry('600x600')
+			#On créer le canvas pour le dessin
 			app.canvas = tk.Canvas(app, width = 600, height = 600)
 			app.canvas.grid(row=1, column=1, columnspan=3)
 			t = turtle.RawTurtle(app.canvas)
@@ -682,10 +725,18 @@ def user_display(step):
 					#il y a plusieurs lettre, c'est mot
 					sender({'command': 'checkWord', 'param': choix})
 			
-					
-			
-				
+#une fonction pour démarrer un thread
+#@argument: combinaison ip:port
+#@return:		
+def startThread(entry) :
+	thread = threading.Thread(target=client, args=([entry]) )
+	thread.daemon = True
+	thread.start()
 
+				
+#Fonction qui fait l'affichage serveur (sert a relier le thread de socket avec le thread de tkinter)
+#@argument: entier -> l'étape
+#@return:
 def server_display(step):
 	global user_choix
 	global thread
@@ -722,7 +773,9 @@ def server_display(step):
 			pass
 
 
-
+#Fonction qui fait l'affichage serveur pour le serveur
+#@argument:
+#@return:
 def run():
 	server_display(1)
 	server_display(2)
@@ -779,12 +832,10 @@ if terminal == '-t':
 			choix = '1'
 		else :
 			choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
-			#TODO check error
 			while(choix != '2' and choix != '1') :
 				choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
 	else :
 		choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
-			#TODO check error
 		while(choix != '2' and choix != '1') :
 			choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
 	if choix == '1':
@@ -815,16 +866,4 @@ except Exception as e:
     print(e)
 
 	
-print('Vous avez quitté ' + nomJeu + ', à bientôt')
-
-#https://broux.developpez.com/articles/c/sockets/
-
-
-# >>> import datetime
-# >>> first_time = datetime.datetime.now()
-# >>> later_time = datetime.datetime.now()
-# >>> difference = later_time - first_time
-# >>> seconds_in_day = 24 * 60 * 60
-# datetime.timedelta(0, 8, 562000)
-# >>> divmod(difference.days * seconds_in_day + difference.seconds, 60)
-# (0, 8) 
+print('Vous avez quitté ' + nomJeu + ", à bientôt\n")

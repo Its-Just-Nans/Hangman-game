@@ -17,7 +17,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["-m", "server"]
+            "args": ["-log", "-m", "server"]
         },
         {
             "name": "PyClient",
@@ -25,7 +25,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["-m", "client"]
+            "args": ["-log", "-m", "client"]
         },
         {
           "name": "PyClient -t",
@@ -33,7 +33,7 @@
           "request": "launch",
           "program": "${file}",
           "console": "integratedTerminal",
-          "args": ["-t","-m", "client"]
+          "args": ["-log", "-t","-m", "client"]
         },
         {
           "name": "PyServer -t",
@@ -41,7 +41,7 @@
           "request": "launch",
           "program": "${file}",
           "console": "integratedTerminal",
-          "args": ["-t","-m", "server"]
+          "args": ["-log", "-t","-m", "server"]
         }
     ],
     "compounds": [
