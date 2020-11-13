@@ -341,9 +341,11 @@ def printNextStep():
 	etape = etape + 1
  
 def displayLetters():
+	global terminal
+	global param
+	global app
+	global log
 	try:
-		global param
-		global app
 		if param != '':
 			#fonction qui gere l'affichage des lettres
 			if terminal == '-t':
@@ -354,12 +356,14 @@ def displayLetters():
 				tabLetter = list(param)
 				count = 0
 				for letter in tabLetter :
-					label = tk.Label(app.frame, text = letter, borderwidth = 4, relief="ridge")
+					label = tk.Label(app.frame, text = letter, borderwidth = 2, relief="ridge")
 					label.grid(row=1, column=count)
+					#app.frame.append(label)
 					app.frame.word.append(label)
 					count = count+1
 	except Exception as e:
-		print(e)
+		if log:
+			print(e)
 
 
 def Transform(mot):
@@ -424,8 +428,9 @@ def server(port):
 	print ("{} connected".format( address ))
 	while True:
 		response = client.recv(255).decode("utf-8")
-		print('Client->Server:')
-		print(response)
+		if log:
+			print('Client->Server:')
+			print(response)
 		try:
 			tab = json.loads(response)
 			if 'MAC' in tab:
@@ -448,10 +453,12 @@ def server(port):
 							#le client demande de vérifier une lettre
 							game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
 							if inWord(game[macClient]['mot'], tab['param']):
-								##remplacer -_ par lettre
+								##remplacer _ par lettre
 								game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
-								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}
-								
+								senderServer({'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}, client)
+								if '_' not in game[macClient]['fakeMot']:
+									game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
+									valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
 						elif tab['command'] == 'checkWord':
@@ -459,7 +466,7 @@ def server(port):
 							if tab['param'] == game[macClient]['mot'] :
 								senderServer({'MAC':'SERVER', 'command': 'checkWord', 'param': game[macClient]['mot'] }, client)
 								game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
-								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': SecondeEnDate(game[macClient]['time']) }
+								valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
 							else:
 								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
 						if valeur != {}:
@@ -490,6 +497,8 @@ def sender(var):
 def client(chaine):
 	global param
 	global sock
+	global log
+	global terminal
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	address = chaine.split(':')[0]
 	port = int(chaine.split(':')[1])
@@ -498,8 +507,9 @@ def client(chaine):
 		sock.connect((address, port))
 		while True:
 			response = sock.recv(255).decode("utf-8")
-			print('server->Client:')
-			print(response)
+			if log :
+				print('server->Client:')
+				print(response)
 			try:
 				tab = json.loads(response)
 				if 'command' in tab:
@@ -519,20 +529,24 @@ def client(chaine):
 							app.saisi.delete(0, 'end')
 							printNextStep()
 						else:
+							app.saisi.delete(0, 'end')
 							param = tab['param']
 							displayLetters()
-							#bonne lettre, on verifie s'il a trouvé le mot
-							if '_' not in tab['param'] :
-								print('WINN')
 					elif tab['command'] == 'checkWord' :
 						if tab['param'] == 'ko':
 							app.saisi.delete(0, 'end')
 							printNextStep()
 						else:
 							param = tab['param']
+							app.saisi.delete(0, 'end')
 							displayLetters()
-							if '_' not in tab['param'] :
-								print('WINN')
+					elif tab['command'] == 'win' :
+						print('WIN')
+						#TODO JULES afficher le temps qui est dans tab['param']
+						if terminal != '-t':
+							app.canvas.destroy()
+							app.button.destroy()
+							app.saisi.destroy()
 					else :
 						pass
 			except Exception as e:
@@ -556,6 +570,7 @@ def client(chaine):
 def user_display(step):
 	global param
 	global t
+	global app
 	if terminal == '-t':
 		if step == 1:
 			print('Vous êtes désormais un joueur Suspensus')
@@ -651,9 +666,9 @@ def user_display(step):
 
 			displayLetters()
 			#app.geometry('600x600')
-			canvas = tk.Canvas(app, width = 600, height = 600)
-			canvas.grid(row=1, column=1, columnspan=3)
-			t = turtle.RawTurtle(canvas)
+			app.canvas = tk.Canvas(app, width = 600, height = 600)
+			app.canvas.grid(row=1, column=1, columnspan=3)
+			t = turtle.RawTurtle(app.canvas)
 			t.hideturtle()
 			t.speed("fast") # ou speed(0) pour instant draw
 		elif step == 4:
@@ -721,6 +736,15 @@ def run():
 
 #Option permetant de savoir si on veut un mode terminal ou non
 global terminal
+global nomJeu
+global user_choix
+global thread
+global game
+global id
+global etape
+global param
+global sock
+global log
 try:
 	
 	if '-t' in sys.argv:
@@ -733,17 +757,13 @@ try:
 			mode = sys.argv[(var+1)]
 	else :
 		mode = ''
+	if '-log' in sys.argv:
+		log = True
+	else:
+		log = False
 except:
 	terminal = 0
-global nomJeu
-global user_choix
-global thread
-global game
-global id
-global etape
 etape = 1
-global param
-global sock
 param = ''
 id = get_mac()
 game = {}
