@@ -17,6 +17,22 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
+        },
+        {
+          "name": "PyClient -t",
+          "type": "python",
+          "request": "launch",
+          "program": "${file}",
+          "console": "integratedTerminal",
+          "args": ["-t","-m", "client"]
+        },
+        {
+          "name": "PyServer -t",
+          "type": "python",
+          "request": "launch",
+          "program": "${file}",
+          "console": "integratedTerminal",
+          "args": ["-t","-m", "server"]
         }
     ],
     "compounds": [

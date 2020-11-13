@@ -8,6 +8,8 @@ import json
 import time
 import random
 
+
+
 def lettreTire(mot,motAct,lettre) :
   posi= giveIndex(mot, lettre)
   newWord= motAct
@@ -339,13 +341,27 @@ def printNextStep():
 	etape = etape + 1
  
 def displayLetters():
-	#fonction qui gere l'affichage des lettres
-	if terminal == '-t':
-		#affichage terminal
-		pass
-	else:
-		pass
-		#affichage tkinter
+	try:
+		global param
+		global app
+		if param != '':
+			#fonction qui gere l'affichage des lettres
+			if terminal == '-t':
+				#affichage terminal
+				pass
+			else:
+				try:
+					tab = app.frame
+					for element in tab :
+						element.destroy()
+				except Exception as e:
+					print(e)
+				tabLetter = list(param)
+				count = 0
+				for letter in tabLetter :
+					app.frame.label[count] = tk.Label(app.frame, text = letter, borderwidth = 6, relief="ridge")
+	except Exception as e:
+		print(e)
 
 
 def Transform(mot):
@@ -523,14 +539,14 @@ def client(chaine):
 				print(e)
 	except Exception as e:
 		print(e)
-		if hasattr(app, 'labelBug2'):
-			app.labelBug2 = tk.Label(app, text = 'Connexion échouée', fg="red")
-			app.labelBug2.pack()
-		app.saisi_Client = tk.Entry(app, width=20)
-		app.saisi_Client.pack(side="left")
-		app.button_saisi = tk.Button(app, text="Se connecter", fg="blue", command=lambda : user_display(2) )
-		app.button_saisi.pack(side="right")
-		app.label.destroy()
+		# if hasattr(app, 'labelBug2'):
+		# 	app.labelBug2 = tk.Label(app, text = 'Connexion échouée', fg="red")
+		# 	app.labelBug2..grid(row=1, column=1, columnspan=3)
+		# app.saisi_Client = tk.Entry(app, width=20)
+		# app.saisi_Client.pack(side="left")
+		# app.button_saisi = tk.Button(app, text="Se connecter", fg="blue", command=lambda : user_display(2) )
+		# app.button_saisi.pack(side="right")
+		# app.label.destroy()
 
 
 #
@@ -582,9 +598,9 @@ def user_display(step):
 			app.button_client.destroy()
 			app.button_server.destroy()
 			app.saisi_Client = tk.Entry(app, width=20)
-			app.saisi_Client.pack(side="left")
+			app.saisi_Client.grid(row=2, column=1)
 			app.button_saisi = tk.Button(app, text="Se connecter", fg="blue", command=lambda : user_display(2) )
-			app.button_saisi.pack(side="right")
+			app.button_saisi.grid(row=2, column=3)
 		elif step == 2:
 			entry = app.saisi_Client.get()
 			if not verifIPport(entry):
@@ -594,13 +610,13 @@ def user_display(step):
 					pass
 				app.saisi_Client.destroy()
 				app.button_saisi.destroy()
-				if not hasattr(app, 'labelBug2'):
+				if 'labelBug2' not in app:
 					app.labelBug = tk.Label(app, text = 'Mauvaise Ip veuillez recommencer', fg="red")
-					app.labelBug.pack()
+					app.labelBug.grid(row=1, column=1, columnspan=3)
 				app.saisi_Client = tk.Entry(app, width=20 )
-				app.saisi_Client.pack(side="left")
+				app.saisi_Client.grid(row=2, column=1)
 				app.button_saisi = tk.Button(app, text="Se connecter", fg="blue", command=lambda : user_display(2) )
-				app.button_saisi.pack(side="right")
+				app.button_saisi.grid(row=2, column=3)
 			else :
 				try :
 					app.labelBug.destroy()
@@ -608,7 +624,7 @@ def user_display(step):
 				except :
 					pass
 				app.label = tk.Label(app, text= 'Connection à ' + entry +' ')
-				app.label.pack(side="bottom")
+				app.label.grid(row=1, column=1, columnspan=3)
 				app.button_saisi.destroy()
 				del app.button_saisi
 				app.saisi_Client.destroy()
@@ -618,17 +634,19 @@ def user_display(step):
 				app.label.destroy()
 				if not hasattr(app, 'button_saisi'):
 					app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : sender({'command': 'startGame', 'param': ''}) )
-					app.button_saisi.pack()
+					app.button_saisi.grid(row=1, column=1, columnspan=3)
 		elif step == 3:
 			app.button_saisi.destroy()
 			app.label.destroy()
 			app.button =  tk.Button(app, text="Envoyer", fg="blue", command=lambda : user_display(4) )
-			app.button.pack(side="bottom")
+			app.button.grid(row=3, column=3)
 			app.saisi = tk.Entry(app, width=20 )
-			app.saisi.pack(side="bottom")
-			app.geometry('600x600')
+			app.saisi.grid(row=3, column=1)
+			app.frame = tk.Frame(app, height = 50)
+			displayLetters()
+			#app.geometry('600x600')
 			canvas = tk.Canvas(app, width = 600, height = 600)
-			canvas.pack()
+			canvas.grid(row=1, column=1, columnspan=3)
 			t = turtle.RawTurtle(canvas)
 			t.hideturtle()
 			t.speed("fast") # ou speed(0) pour instant draw
@@ -650,6 +668,7 @@ def server_display(step):
 	global user_choix
 	global thread
 	global terminal
+	global app
 	if terminal == '-t':
 		if step == 1:
 			print('Démarrage du serveur...')
@@ -671,12 +690,12 @@ def server_display(step):
 			app.button_server.destroy()
 			ip =  get_ip() + ':' + str(port)
 			app.label = tk.Label(app, text='Ip à saisir '+ ip, fg="blue" )
-			app.label.pack(side="bottom")
+			app.label.grid(row=2, column=1, columnspan=3)
 			thread = threading.Thread(target=server, args=([port]))
 			thread.daemon = True
 			thread.start()
 			app.button_saisi = tk.Button(app, text="Copier", fg="blue", command=lambda : copie(ip) )
-			app.button_saisi.pack(side="bottom")
+			app.button_saisi.grid(row=1, column=1, columnspan=3)
 		elif step == 2:
 			pass
 
@@ -696,7 +715,17 @@ def run():
 #Option permetant de savoir si on veut un mode terminal ou non
 global terminal
 try:
-	terminal = sys.argv[1]
+	
+	if '-t' in sys.argv:
+		terminal = '-t'
+	else :
+		terminal = ''
+	if '-m' in sys.argv:
+		var = sys.argv.index('-m')
+		if sys.argv[(var+1)] != '':
+			mode = sys.argv[(var+1)]
+	else :
+		mode = ''
 except:
 	terminal = 0
 global nomJeu
@@ -716,26 +745,43 @@ port= 1500
 print('Bienvenue sur '+ nomJeu)
 #terminal = '-t'
 if terminal == '-t':
-	choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
-	#TODO check error
-	while(choix != '2' and choix != '1') :
+	if mode != '':
+		if mode == 'server' :
+			choix = '2'
+		elif mode == 'client':
+			choix = '1'
+		else :
+			choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
+			#TODO check error
+			while(choix != '2' and choix != '1') :
+				choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
+	else :
 		choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
-	if(choix == '1'):
+			#TODO check error
+		while(choix != '2' and choix != '1') :
+			choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
+	if choix == '1':
 		user_display(1)
-	else:
+	elif choix == '2':
 		run()
 else :
 	global app
 	app = tk.Tk()
-	app.geometry('200x200')
+	#app.geometry('200x100')
 	app.title(nomJeu)
-	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display(1))
-	app.button_server.pack(side="left")
-	app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
-	app.button_client.pack(side="right")
 	app.quit = tk.Button(app, text="Quitter", fg="red", command=app.destroy)
-	app.quit.pack(side="bottom")
+	app.quit.grid(row=4, column=1,columnspan=3)
 	app.mainloop()
+	if mode != '':
+		if mode == 'server' :
+			server_display(1)
+		elif mode == 'client':
+			user_display(1)
+	else :
+		app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display(1))
+		app.button_server.grid(row=2, column=1)
+		app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
+		app.button_client.grid(row=2, column=3)
 try:
     sock.close()
 except Exception as e:
