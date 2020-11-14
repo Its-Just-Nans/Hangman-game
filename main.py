@@ -704,7 +704,7 @@ def user_display(step):
 			app.saisi = tk.Entry(app, width=20 )
 			app.saisi.grid(row=3, column=1)
 			#On créer une frame pour le mot
-			app.frame = tk.Frame(app, height = 50, bg="#f50202")
+			app.frame = tk.Frame(app, height = 50)
 			app.frame.grid(row=2, column=1, columnspan=3)
 			app.frame.grid_rowconfigure(0, weight=1)
 
