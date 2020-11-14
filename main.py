@@ -8,21 +8,27 @@ import json
 import time
 import random
 
-def StatsWrite (donnees):
-  
-  with open("stats.json", "w") as file:
-      json.dump(donnees, file)
+#Fonction pour sauvergarder les stats
+#@argument: dict/object -> valeurs a sauvegarder
+#@return: 
+def statsWrite (donnees):
+	with open("stats.json", "w") as file:
+		json.dump(donnees, file)
 
-def StatsRead ():
-  with open("stats.json", "r") as read_file:
-    data = json.load(read_file)
-    print (data)
+#Fonction pour charger les stats
+#@argument: string -> id
+#@return: dict/object -> stats de l'id
+def statsRead(identifant):
+	with open("stats.json", "r") as read_file:
+		data = json.load(read_file)
+		if identifant in data:
+			return data[identifant]
 
 #Fonction pour récuperer l'adresse MAC de la socket, elle servira d'identifiant
 #@argument: string -> un mot, string -> le mot en underscore, string -> la lettre
 #@return: string -> l'adresse MAC
 def lettreTire(mot,motAct,lettre) :
-  posi= giveIndex(mot, lettre)
+  posi = giveIndex(mot, lettre)
   newWord= motAct
   for i in posi :
     newWord = newWord[:i]+lettre+newWord[(i+1):] 
@@ -61,23 +67,24 @@ def get_ip():
 	try:
 		# doesn't even have to be reachable
 		s.connect(('10.255.255.255', 1))
-		IP = s.getsockname()[0]
+		ip = s.getsockname()[0]
 	except Exception:
-		IP = '127.0.0.1'
+		ip = '127.0.0.1'
 	finally:
 		s.close()
-	return IP
+	return ip
 
 #Fonction pour afficher le dessin
 #@argument: 
 #@return: 
 def printNextStep():
+	global info
 	global t
-	global etape
 	#function qui sert a afficher le pendu
-	if terminal == '-t':
+	if info['terminal']:
 		#affichage terminal
-		if etape == 1:
+		print('-----------------------------------------')
+		if info['etape'] == 1:
 			print('''
 			   ║
 			   ║
@@ -85,7 +92,7 @@ def printNextStep():
 			   ║
 			   ║
 			   ║''')
-		elif etape == 2:
+		elif info['etape'] == 2:
 			print('''
 			   ║
 			   ║
@@ -94,7 +101,7 @@ def printNextStep():
 			   ║
 			   ║
 			═══╩═══════════''')
-		elif etape == 3:
+		elif info['etape'] == 3:
 			print('''
 			   ║  /
 			   ║ /
@@ -103,7 +110,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 4:
+		elif info['etape'] == 4:
 			print('''
 			═══╦═════════════╦
 			   ║  /
@@ -113,7 +120,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 5:
+		elif info['etape'] == 5:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -123,7 +130,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 6:
+		elif info['etape'] == 6:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -133,7 +140,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 7:
+		elif info['etape'] == 7:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -143,7 +150,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 8:
+		elif info['etape'] == 8:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -153,7 +160,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 9:
+		elif info['etape'] == 9:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -163,7 +170,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 10:
+		elif info['etape'] == 10:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -173,7 +180,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 11:
+		elif info['etape'] == 11:
 			print('''
 			═══╦═════════════╦
 			   ║  /          ║
@@ -183,7 +190,7 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-		elif etape == 12:
+		elif info['etape'] == 12:
 			print('''
 			═══╦═════════════╦     (dead)
 			   ║  /          ║ . ¨
@@ -193,10 +200,9 @@ def printNextStep():
 			  /║
 			 / ║
 			═══╩═══════════''')
-
 	else:
 		#affichage tkinter
-		if etape == 1:
+		if info['etape'] == 1:
 			# Barre du sol
 			t.penup()
 			t.goto(-90,-250)
@@ -207,7 +213,7 @@ def printNextStep():
 			t.fd(175)
 			t.right(180)
 			t.penup()
-		elif etape == 2:
+		elif info['etape'] == 2:
 			# Barre vertical
 			t.goto(-220,-250)
 			t.pendown()
@@ -217,7 +223,7 @@ def printNextStep():
 			t.fd(450)
 			t.right(90)
 			t.penup()
-		elif etape == 3:
+		elif info['etape'] == 3:
 			#petit tchitchou
 			t.goto(-160,-250)
 			t.pendown()
@@ -227,7 +233,7 @@ def printNextStep():
 			t.fd(90)
 			t.right(128)
 			t.penup()
-		elif etape == 4:
+		elif info['etape'] == 4:
 			#poutre du  haut
 			t.goto(-260,200)
 			t.pendown()
@@ -237,7 +243,7 @@ def printNextStep():
 			t.fd(400)
 			t.right(0)
 			t.penup()
-		elif etape == 5:
+		elif info['etape'] == 5:
 			#corde
 			t.goto(120,194)
 			t.pendown()
@@ -286,7 +292,7 @@ def printNextStep():
 			t.fd(5)
 			t.right(0)
 			t.penup()
-		elif etape == 6:
+		elif info['etape'] == 6:
 			#tête
 			t.goto(119,123)
 			t.pendown()
@@ -297,7 +303,7 @@ def printNextStep():
 			t.end_fill()
 			t.left(90)
 			t.penup()
-		elif etape == 7:
+		elif info['etape'] == 7:
 			#corps		
 			t.goto(118,117)
 			t.pendown()
@@ -307,7 +313,7 @@ def printNextStep():
 			t.fd(130)
 			t.right(-90)
 			t.penup()
-		elif etape == 8:
+		elif info['etape'] == 8:
 			#bras droit
 			t.goto(118,100)
 			t.pendown()
@@ -317,7 +323,7 @@ def printNextStep():
 			t.fd(75)
 			t.right(-80)
 			t.penup()
-		elif etape == 9:
+		elif info['etape'] == 9:
 			#bras gauche
 			t.goto(118,100)
 			t.pendown()
@@ -327,7 +333,7 @@ def printNextStep():
 			t.fd(70)
 			t.right(-70)
 			t.penup()
-		elif etape == 10:
+		elif info['etape'] == 10:
 			#jambe droite
 			t.goto(118,-13)
 			t.pendown()
@@ -339,7 +345,7 @@ def printNextStep():
 			t.fd(20)
 			t.right(-47)
 			t.penup()
-		elif etape == 11:
+		elif info['etape'] == 11:
 			#jambe gauche
 			t.goto(118,-13)
 			t.pendown()
@@ -351,33 +357,36 @@ def printNextStep():
 			t.fd(20)
 			t.right(-60)
 			t.penup()
-		elif etape == 12:
+		elif info['etape'] == 12:
 			#mot de fin
 			t.goto(-100,0)
 			t.pendown()
 			t.color("red")
 			t.write("PENDU !",font=("Arial", 24, "normal"))
 			t.penup()
-	if etape == 12 :
-		endGame()
+	if info['etape'] == 12 :
+		info['fini'] = True
+		if not info['terminal']:
+			endGame()
 	else:
-		etape = etape + 1
+		info['etape'] = info['etape'] + 1
 
 
 #Fonction pour gérer la fin de jeu
 #@argument: 
 #@return: 
 def endGame():
-	global etape
+	global info
 	#TODO JULES afficher le temps qui est dans tab['param']
-	etape = 0
-	if terminal == '-t':
+	info['etape'] = 0
+	info['mot'] = ''
+	if info['terminal']:
 		choix = input('Que voulez-vous faire ?\n1->Rejouer\n2->Quitter\n')
 		while(choix != '1' and choix != '2') :
 			choix = input('Que voulez-vous faire ?\n1->Rejouer\n2->Quitter\n')
-		if choix == 1:
+		if choix == '1':
 			restartGame()
-		elif choix ==2:
+		elif choix == '2':
 			pass
 	else :
 		app.saisi.destroy()
@@ -389,23 +398,21 @@ def endGame():
 #@argument: 
 #@return: 
 def displayLetters():
-	global terminal
-	global param
+	global info
 	global app
-	global log
 	try:
-		if param != '':
+		if info['mot'] != '':
 			#fonction qui gere l'affichage des lettres
-			if terminal == '-t':
+			if info['terminal']:
 				#affichage terminal
-				pass
+				print('Le mot est : ' + str(list(info['mot'])))
 			else:
 				try:
 					for element in app.word : #TODO
 						element.destroy()
 				except :
-					app.word = [] #TODO LE SUPPRIMER
-				tabLetter = list(param)
+					app.word = []
+				tabLetter = list(info['mot'])
 				count = 0
 				for letter in tabLetter :
 					label = tk.Label(app.frame, text = letter, borderwidth = 2, relief="ridge", font=('Helvetica', 15))
@@ -414,7 +421,7 @@ def displayLetters():
 					app.word.append(label)
 					count = count+1
 	except Exception as e:
-		if log:
+		if info['log']:
 			print(e)
 
 #Fonction pour enlever les accents
@@ -435,6 +442,8 @@ def giveIndex(mot, lettre) :
 #@argument: string -> combinaison 'ip:port'
 #@return: bool -> True or False
 def verifIPport(IPPort) :
+	if ' ' in IPPort:
+		return False
 	IPPort=IPPort.split(':')
 	if len(IPPort) == 2 :
 		try:
@@ -454,12 +463,6 @@ def verifIPport(IPPort) :
 			return False
 	else :
 		return False
-
-#TODO
-def endGameConnection():
-	global param
-	if param == '':
-		print('Le serveur n\'a pas répondu')
 
 #choisi un mot random dans un dictionnaire
 #argument: string -> name/path of the ditionnary
@@ -484,17 +487,20 @@ def changeWordInDash(word):
 #Fonction qui permet de créer le serveur en ouvrant une socket
 #@argument: entier -> numero de PORT
 #@return: 
-def server(port):
+def server(tab):
 	global sock
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	host_name = get_ip()
-	sock.bind((host_name, port))
-	sock.listen(5)
-	client, address = sock.accept()
-	print ("{} connected".format( address ))
+	global game
+	port = tab[0]
+	client = tab[1]
+	addr = tab[2]
 	while True:
-		response = client.recv(255).decode("utf-8")
-		if log:
+		try :
+			response = client.recv(255).decode("utf-8")
+		except ConnectionResetError:
+			if info['log']:
+				print('Client '+ addr[0] +' -> déconnecté')
+			break
+		if info['log']:
 			print('Client->Server:')
 			print(response)
 		try:
@@ -539,6 +545,8 @@ def server(port):
 							senderServer(valeur, client)
 					else:
 						pass
+		except ConnectionAbortedError:
+			pass
 		except Exception as e:
 			print('Error')
 			print(e)
@@ -549,16 +557,17 @@ def server(port):
 def senderServer(var, client):
 	var['MAC'] = 'SERVER'
 	toSend = json.dumps(var).encode()
-	client.sendall(toSend)
+	client.send(toSend)
 
 #Une fonction pour envoyer au serveur
 #@argument: object/dict -> les valeurs a envoyer
 #@return:
 def sender(var):
-	var['MAC'] = id
+	global info
+	var['MAC'] = info['id']
 	toSend = json.dumps(var).encode()
 	try:	
-		sock.sendall(toSend)
+		sock.send(toSend)
 	except Exception as e:
 		print('Error')
 		print(e)
@@ -569,68 +578,86 @@ def sender(var):
 #@argument: string -> combinaison ip:port
 #@return:
 def client(chaine):
-	global param
 	global sock
-	global log
-	global terminal
+	global info
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	address = chaine.split(':')[0]
 	port = int(chaine.split(':')[1])
 	try :
-		if log :
+		if info['log'] :
 			print('Essaie de connection avec : ' + address + ':' + str(port))
 		sock.connect((address, port))
-		if log :
-			print('Connecté avec : ' + address + ':' + str(port))
-		app.label.destroy()
+		portClient = sock.getsockname()[1]
+		if info['log'] :
+			print('Connecté à : ' + address + ':' + str(port) + ' avec le port ' + str(portClient))
+		info['id'] = info['id'] + ':' + str(portClient)
+		if not info['terminal']:
+			app.label.destroy()
 	except Exception as e:
-		if log :
+		if info['log'] :
 			print(e)
-	try:
-		while True:
+	while True:
+		try:
 			response = sock.recv(255).decode("utf-8")
-			if log :
+			if info['log'] :
 				print('server->Client:')
 				print(response)
-			
-				tab = json.loads(response)
-				if 'command' in tab:
-					macClient = tab['MAC']
-					if tab['command'] == 'startGame' :
-						if tab['param'] == 'ko':
-							print('error')
-						else:
-							print(param)
-							param = tab['param']
-							if terminal != '-t':
-								user_display(3)
+			tab = json.loads(response)
+			if 'command' in tab:
+				if tab['command'] == 'startGame' :
+					if tab['param'] == 'ko':
+						print('error')
+					else:
+						info['mot'] = tab['param']
+						if info['terminal']:
+							user_display(2)
+						else :
+							user_display(3)
 							displayLetters()
-					elif tab['command'] == 'checkLetter' :
-						if tab['param'] == 'ko':
+				elif tab['command'] == 'checkLetter' :
+					if tab['param'] == 'ko':
+						if info['terminal']:
+							printNextStep()
+							user_display(2)
+						else:
 							app.saisi.delete(0, 'end')
 							printNextStep()
+					else:
+						info['mot'] = tab['param'] #on actualise le mot
+						if info['terminal']:
+							user_display(2)
 						else:
 							app.saisi.delete(0, 'end')
-							param = tab['param']
 							displayLetters()
-					elif tab['command'] == 'checkWord' :
-						if tab['param'] == 'ko':
+				elif tab['command'] == 'checkWord' :
+					if tab['param'] == 'ko':
+						if info['terminal']:
+							printNextStep()
+							user_display(2)
+						else:
 							app.saisi.delete(0, 'end')
 							printNextStep()
+					else:
+						info['mot'] = tab['param'] #on actualise le mot
+						if info['terminal']:
+							user_display(2)
 						else:
-							param = tab['param']
 							app.saisi.delete(0, 'end')
 							displayLetters()
-					elif tab['command'] == 'win' :
-						print('WIN')
+				elif tab['command'] == 'win' :
+					print('WIN')
+					info['fini'] = True
+					info['mot'] = ''
+					if not info['terminal']:
 						endGame()
-						
-					else :
-						pass
-	except Exception as e:
-		if log :
-			print('Error socket :')
-			print(e)
+				else :
+					pass
+		except ConnectionAbortedError:
+			break
+		except Exception as e:
+			if info['log'] :
+				print('Error socket :')
+				print(e)
 
 
 
@@ -639,9 +666,10 @@ def client(chaine):
 #@return:
 def user_display(step):
 	global param
-	global t
+	global info
 	global app
-	if terminal == '-t':
+	global t
+	if info['terminal']:
 		if step == 1:
 			print('Vous êtes désormais un joueur Suspensus')
 			entry = input('Veuillez saisir la combinaison adresseIP:Port\n')
@@ -656,28 +684,27 @@ def user_display(step):
 			while entry != '1' :
 				entry = input('1->Commencer la partie\n')
 			sender({'command': 'startGame', 'param': ''})
-			while param == '':
-				time.sleep(0.5)
-			user_display(3)
-		elif step == 3:
-			print('Mot à choisir : '+ param )
-			#TODO utiliser dispLetters
-			entry = input('Veuillez saisir une lettre ou un mot :\n')
-			if(' ' not in entry) :
-				if len(entry) == 1:
-					#il y a une seule lettre
-					sender({'command': 'checkLetter', 'param': entry})
-				elif len(entry) > 1:
-					#il y a plusieurs lettre, c'est mot
-					sender({'command': 'checkWord', 'param': entry})
-				else : 
-					entry = input('Veuillez saisir une lettre ou un mot :\n')
-			else :
+			info['mot'] = ''
+			mot = info['mot']
+			while not info['fini'] :
+				pass
+			endGame()
+		elif step == 2:
+			displayLetters()
+			motInArray = list(info['mot'])
+			if '_' in motInArray:
 				entry = input('Veuillez saisir une lettre ou un mot :\n')
-
-		elif step == 4:
-			print('TO DO')
-			
+				if(' ' not in entry) :
+					if len(entry) == 1:
+						#il y a une seule lettre
+						sender({'command': 'checkLetter', 'param': entry})
+					elif len(entry) > 1:
+						#il y a plusieurs lettre, c'est mot
+						sender({'command': 'checkWord', 'param': entry})
+					else : 
+						entry = input('Veuillez saisir une lettre ou un mot :\n')
+				else :
+					entry = input('Veuillez saisir une lettre ou un mot :\n')
 	#On veut tkinter, on va dans le else
 	else:
 		if step == 1:
@@ -746,98 +773,120 @@ def startThread(entry) :
 #Fonction qui fait l'affichage serveur (sert a relier le thread de socket avec le thread de tkinter)
 #@argument: entier -> l'étape
 #@return:
-def server_display(step):
-	global user_choix
+def server_display():
 	global thread
-	global terminal
+	global info
 	global app
-	if terminal == '-t':
-		if step == 1:
-			print('Démarrage du serveur...')
-			thread = threading.Thread(target=server, args=([port]))
-			thread.daemon = True
-			thread.start()
-			host_name = get_ip()
-			print('Serveur écoute en '+host_name+':'+str(port))
-			print('Saisissez '+host_name+':'+ str(port) +' sur le client pour jouer')
-		elif step == 2:
-			print('taper exit pour quitter')
-			while input() != 'exit':
-				print('taper exit pour quitter')
-			
+	global sock
+	port = 1500
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	host_name = get_ip()
+	sock.bind((host_name, port))
+	sock.listen(5)
+	text = 'Saisissez '+host_name+':'+ str(port) +' sur le client pour jouer'
+	#AFFICHAGE
+	if info['terminal']:
+		print('Démarrage du serveur...')
+		print('Serveur écoute en '+host_name+':'+str(port))
+		serverWaiting(text)
 	#On veut tkinter, on va dans le else
 	else:
-		if step == 1:
-			app.button_client.destroy()
-			app.button_server.destroy()
-			ip =  get_ip() + ':' + str(port)
-			app.label = tk.Label(app, text='Ip à saisir '+ ip, fg="blue" )
-			app.label.grid(row=2, column=1, columnspan=3)
-			thread = threading.Thread(target=server, args=([port]))
-			thread.daemon = True
-			thread.start()
-			app.button_saisi = tk.Button(app, text="Copier", fg="blue", command=lambda : copie(ip) )
-			app.button_saisi.grid(row=1, column=1, columnspan=3)
-		elif step == 2:
+		app.button_client.destroy()
+		app.button_server.destroy()
+		ip =  host_name + ':' + str(port)
+		app.label = tk.Label(app, text='Ip à saisir '+ ip, fg="blue" )
+		app.label.grid(row=2, column=1, columnspan=3)
+		app.button_saisi = tk.Button(app, text="Copier", fg="blue", command=lambda : copie(ip) )
+		app.button_saisi.grid(row=1, column=1, columnspan=3)
+		threadWaiter = threading.Thread(target=serverWaiting, args=([text]) )
+		threadWaiter.daemon = True
+		threadWaiter.start()
+	
+		
+
+def serverWaiting(text) :
+	global info
+	global sock
+	threadForClient = []
+	while True:
+		try:
+			if info['terminal']:
+				print('------------------------------------------------------')
+				print(text)
+				print('------------------------------------------------------')
+			# establish connection with client 
+			client, addr = sock.accept()
+			if info['log'] :
+				print('Client '+ addr[0] + ':' + str(addr[1]) + '-> connecté')
+			# Start a new thread and return its identifier
+			threadForClient = threading.Thread(target=server, args=([ [1500, client, addr] ]))
+			threadForClient.daemon = True
+			threadForClient.start()
+		except Exception as e:
 			pass
 
 
-#Fonction qui fait l'affichage serveur pour le serveur
-#@argument:
-#@return:
-def run():
-	server_display(1)
-	server_display(2)
-	server_display(3)
-	server_display(4)
-	server_display(5)
-	server_display(6)
 
+#Convertis la date noté j-h-m-s en : Vous avez mis : j jours h heures m minutes et s secondes
+#@arguments date noté j-h-m-s
+#@return : string -> date
+def ConvertDateIntoLetters(date):
+  liste_date = date.split('-')
+  return 'Vous avez mis : '+liste_date[0] + ' jours ' + liste_date[1]+ ' heures '+ liste_date[2] + ' minutes ' +'et '+ liste_date[3] + ' secondes'
+
+def destroyTkinter():
+	global app
+	global sock
+	app.destroy()
+	sock.close()
 
 ###########################MAIN####################
 
 #Option permetant de savoir si on veut un mode terminal ou non
-global terminal
 global nomJeu
-global user_choix
-global thread
 global game
-global id
-global etape
-global param
 global sock
-global log
+global app
+global info
+global t # la turtle
+info = {}
 try:
-	
+	#check si c'est en terminal
 	if '-t' in sys.argv:
-		terminal = '-t'
+		info['terminal'] = True
 	else :
-		terminal = ''
+		info['terminal'] = False
+
+	#check si il y a un mode
 	if '-m' in sys.argv:
 		var = sys.argv.index('-m')
 		if sys.argv[(var+1)] != '':
-			mode = sys.argv[(var+1)]
+			info['mode'] = sys.argv[(var+1)]
 	else :
-		mode = ''
+		info['mode'] = ''
+	#check si il y a un mode
 	if '-log' in sys.argv:
-		log = True
+		info['log'] = True
 	else:
-		log = False
+		info['log'] = False
 except:
-	terminal = 0
-etape = 1
-param = ''
-id = get_mac()
+	info['terminal'] = False
+	info['log'] = False
+	info['mode'] = ''
+info['etape'] = 1
+info['fini'] = False
+info['param'] = ''
+info['id'] = get_mac()
 game = {}
 nomJeu = 'HANGMAN'
-port= 1500
+info['port'] = 1500
 print('Bienvenue sur '+ nomJeu)
 #terminal = '-t'
-if terminal == '-t':
-	if mode != '':
-		if mode == 'server' :
+if info['terminal']:
+	if info['mode'] != '':
+		if info['mode'] == 'server' :
 			choix = '2'
-		elif mode == 'client':
+		elif info['mode'] == 'client':
 			choix = '1'
 		else :
 			choix = input('Que voulez-vous faire ?\n1->Jouer à ' + nomJeu + '\n2->Démarrer un serveur de jeu ' + nomJeu + '\n')
@@ -850,32 +899,30 @@ if terminal == '-t':
 	if choix == '1':
 		user_display(1)
 	elif choix == '2':
-		run()
+		server_display()
 else :
 	global app
 	app = tk.Tk()
 	#app.geometry('200x100')
 	app.title(nomJeu)
-	app.quit = tk.Button(app, text="Quitter", fg="red", command=app.destroy)
+	app.quit = tk.Button(app, text="Quitter", fg="red", command=lambda :destroyTkinter())
 	app.quit.grid(row=4, column=1,columnspan=3)
-	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display(1))
+	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display())
 	app.button_server.grid(row=2, column=1)
 	app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
 	app.button_client.grid(row=2, column=3)
-	if mode != '':
-		if mode == 'server' :
+	if info['mode'] != '':
+		if info['mode'] == 'server' :
 			app.button_server.invoke()
-		elif mode == 'client':
+		elif info['mode'] == 'client':
 			app.button_client.invoke()
 	app.mainloop()
 		
 try:
     sock.close()
 except Exception as e:
-    print(e)
+    #print(e)
+	pass
 
 	
-print('Vous avez quitté ' + nomJeu + ", à bientôt\n")
-
-
- #https://www.geeksforgeeks.org/socket-programming-multi-threading-python/
+print('Vous avez quitté ' + nomJeu + ", à bientôt")
