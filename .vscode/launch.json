@@ -12,6 +12,14 @@
             "console": "integratedTerminal"
         },
         {
+          "name": "DEBUG - HangMan",
+          "type": "python",
+          "request": "launch",
+          "program": "${file}",
+          "console": "integratedTerminal",
+          "args": ["-log"]
+        },
+        {
             "name": "PyServer",
             "type": "python",
             "request": "launch",
