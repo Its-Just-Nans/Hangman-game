@@ -867,3 +867,6 @@ except Exception as e:
 
 	
 print('Vous avez quitté ' + nomJeu + ", à bientôt\n")
+
+
+ #https://www.geeksforgeeks.org/socket-programming-multi-threading-python/
