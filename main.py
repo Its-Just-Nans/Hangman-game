@@ -8,6 +8,15 @@ import json
 import time
 import random
 
+def StatsWrite (donnees):
+  
+  with open("stats.json", "w") as file:
+      json.dump(donnees, file)
+
+def StatsRead ():
+  with open("stats.json", "r") as read_file:
+    data = json.load(read_file)
+    print (data)
 
 #Fonction pour récuperer l'adresse MAC de la socket, elle servira d'identifiant
 #@argument: string -> un mot, string -> le mot en underscore, string -> la lettre
