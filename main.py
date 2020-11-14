@@ -392,7 +392,7 @@ def displayLetters():
 				pass
 			else:
 				try:
-					for element in app.word :
+					for element in app.word : #TODO
 						element.destroy()
 				except :
 					app.word = [] #TODO LE SUPPRIMER
