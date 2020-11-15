@@ -7,6 +7,7 @@ import turtle
 import json
 import time
 import random
+import webbrowser
 
 #Fonction pour sauvergarder les stats
 #@argument: dict/object -> valeurs a sauvegarder
@@ -393,6 +394,9 @@ def endGame():
 		app.button.destroy()
 		app.button =  tk.Button(app, text="Rejouer", fg="blue", command=lambda : restartGame() )
 		app.button.grid(row=3, column=1, columnspan=3)
+		app.quit.grid(row=4, column=2)
+		app.quitAndURL = tk.Button(app, text="Quitter Et sortir", fg="red", command=lambda :destroyTkinter(True))
+		app.quitAndURL.grid(row=4, column=3)
 
 #Fonction pour afficher le choix les lettres
 #@argument: 
@@ -404,22 +408,27 @@ def displayLetters():
 		if info['mot'] != '':
 			#fonction qui gere l'affichage des lettres
 			if info['terminal']:
-				#affichage terminal
-				print('Le mot est : ' + str(list(info['mot'])))
+				#affichage terminal TODO Raprcoher les lettres
+				print('Le mot est : ' + str(' '.join(list(info['mot']))))
 			else:
 				try:
-					for element in app.word : #TODO
-						element.destroy()
+					if app.word:
+						tabLetter = list(info['mot'])
+						count = 0
+						for element in app.word :
+							element['text'] = tabLetter[count]
+							count = count+1
+					#TODO TEST
 				except :
 					app.word = []
-				tabLetter = list(info['mot'])
-				count = 0
-				for letter in tabLetter :
-					label = tk.Label(app.frame, text = letter, borderwidth = 2, relief="ridge", font=('Helvetica', 15))
-					label.grid(row=0, column=count)
-					#app.frame.append(label)
-					app.word.append(label)
-					count = count+1
+					tabLetter = list(info['mot'])
+					count = 0
+					for letter in tabLetter :
+						label = tk.Label(app.frame, text = letter, borderwidth = 2, relief="ridge", font=('Helvetica', 15))
+						label.grid(row=0, column=count)
+						#app.frame.append(label)
+						app.word.append(label)
+						count = count+1
 	except Exception as e:
 		if info['log']:
 			print(e)
@@ -545,6 +554,9 @@ def server(tab):
 							senderServer(valeur, client)
 					else:
 						pass
+		except KeyboardInterrupt:
+				print('Vous avez quitté')
+				break
 		except ConnectionAbortedError:
 			pass
 		except Exception as e:
@@ -751,7 +763,6 @@ def user_display(step):
 			t.hideturtle()
 			t.speed("fast") # ou speed(0) pour instant draw
 		elif step == 4:
-			notFinish = True
 			choix = app.saisi.get()
 			if(' ' not in choix) :
 				if len(choix) == 1:
@@ -814,14 +825,20 @@ def serverWaiting(text) :
 				print('------------------------------------------------------')
 				print(text)
 				print('------------------------------------------------------')
-			# establish connection with client 
-			client, addr = sock.accept()
+			# a chaque connection, le serveur démarre un thread
+			try:
+				client, addr = sock.accept()
+			except KeyboardInterrupt:
+				print('Vous avez quitté')
+				break
 			if info['log'] :
 				print('Client '+ addr[0] + ':' + str(addr[1]) + '-> connecté')
-			# Start a new thread and return its identifier
 			threadForClient = threading.Thread(target=server, args=([ [1500, client, addr] ]))
 			threadForClient.daemon = True
 			threadForClient.start()
+		except KeyboardInterrupt:
+			print('Vous avez quitté')
+			break
 		except Exception as e:
 			pass
 
@@ -834,9 +851,11 @@ def ConvertDateIntoLetters(date):
   liste_date = date.split('-')
   return 'Vous avez mis : '+liste_date[0] + ' jours ' + liste_date[1]+ ' heures '+ liste_date[2] + ' minutes ' +'et '+ liste_date[3] + ' secondes'
 
-def destroyTkinter():
+def destroyTkinter(openUrl):
 	global app
 	global sock
+	if openUrl:
+		webbrowser.open_new('https://media.interieur.gouv.fr/deplacement-covid-19/')
 	app.destroy()
 	sock.close()
 
@@ -905,7 +924,7 @@ else :
 	app = tk.Tk()
 	#app.geometry('200x100')
 	app.title(nomJeu)
-	app.quit = tk.Button(app, text="Quitter", fg="red", command=lambda :destroyTkinter())
+	app.quit = tk.Button(app, text="Quitter", fg="red", command=lambda :destroyTkinter(False))
 	app.quit.grid(row=4, column=1,columnspan=3)
 	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display())
 	app.button_server.grid(row=2, column=1)
@@ -916,6 +935,8 @@ else :
 			app.button_server.invoke()
 		elif info['mode'] == 'client':
 			app.button_client.invoke()
+	#TODO root.iconbitmap('C:\\Users\\Pc\\Desktop\\icon.ico')
+	#https://www.iconbros.com/icons/ib-g-hangman
 	app.mainloop()
 		
 try:
