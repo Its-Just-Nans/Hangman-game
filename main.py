@@ -430,7 +430,10 @@ def displayLetters():
 						app.word.append(label)
 						count = count+1
 	except Exception as e:
-		if info['log']:
+		if info['log'] :
+			print(type(e).__name__)
+			print(e.__class__.__name__)
+			print(e.__class__.__qualname__)
 			print(e)
 
 #Fonction pour enlever les accents
@@ -468,7 +471,11 @@ def verifIPport(IPPort) :
 			else :
 				return False
 		except Exception as e:
-			print(e)
+			if info['log'] :
+				print(type(e).__name__)
+				print(e.__class__.__name__)
+				print(e.__class__.__qualname__)
+				print(e)
 			return False
 	else :
 		return False
@@ -499,69 +506,86 @@ def changeWordInDash(word):
 def server(tab):
 	global sock
 	global game
-	port = tab[0]
-	client = tab[1]
-	addr = tab[2]
-	while True:
-		try :
-			response = client.recv(255).decode("utf-8")
-		except ConnectionResetError:
-			if info['log']:
-				print('Client '+ addr[0] +' -> déconnecté')
-			break
-		if info['log']:
-			print('Client->Server:')
-			print(response)
-		try:
-			tab = json.loads(response)
-			if 'MAC' in tab:
-				macClient = tab['MAC']
-				if 'command' in tab and tab['command'] == 'startGame':
-					game[macClient] = {}
-					#gérer les options ici
-					temp=int(time.time())
-					game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': temp}
-					print('le  mot est ' + game[macClient]['mot'])
-					game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
-					senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': game[macClient]['fakeMot']}, client)
-				else :
-					if macClient in game and 'command' in tab:
-						valeur = {}
-						if tab['command'] == 'chooseWord':
-							game[macClient]['mot'] = MotRandom('liste_francais.txt')
-							valeur = {'MAC':'SERVER', 'command': 'chooseWord', 'param': 'ok'}
-						elif tab['command'] == 'checkLetter':
-							#le client demande de vérifier une lettre
-							game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
-							if tab['param'] in list(game[macClient]['mot']):
-								##remplacer _ par lettre
-								game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
-								senderServer({'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}, client)
-								if '_' not in game[macClient]['fakeMot']:
-									game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
-									valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
-							else:
-								valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
-						elif tab['command'] == 'checkWord':
-							#le client demande de vérifier un mot
-							if tab['param'] == game[macClient]['mot'] :
-								senderServer({'MAC':'SERVER', 'command': 'checkWord', 'param': game[macClient]['mot'] }, client)
-								game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
-								valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
-							else:
-								valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
-						if valeur != {}:
-							senderServer(valeur, client)
-					else:
-						pass
-		except KeyboardInterrupt:
+	client = tab[0]
+	addr = tab[1]
+	try:
+		while True:
+			try :
+				response = client.recv(255).decode("utf-8")
+			except ConnectionResetError:
+				if info['log']:
+					print('Client '+ addr[0] +' -> déconnecté')
+				break
+			except KeyboardInterrupt:
 				print('Vous avez quitté')
 				break
-		except ConnectionAbortedError:
-			pass
-		except Exception as e:
-			print('Error')
-			print(e)
+			if info['log'] and response:
+				print('Client->Server:')
+				print(response)
+			try:
+				if response:
+					tab = json.loads(response)
+				else:
+					if info['log']:
+						print('-----------------------------------')
+						print('la réponse reçue du client ' + addr[0] + ':' + str(addr[1]) + ' est incorrect')
+						print('le client a été donc déconnecté')
+						print('-----------------------------------')
+					break
+				if 'MAC' in tab:
+					macClient = tab['MAC']
+					if 'command' in tab and tab['command'] == 'startGame':
+						game[macClient] = {}
+						#gérer les options ici
+						temp=int(time.time())
+						game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': temp}
+						print('le  mot est ' + game[macClient]['mot'])
+						game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
+						senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': game[macClient]['fakeMot']}, client)
+					else :
+						if macClient in game and 'command' in tab:
+							valeur = {}
+							if tab['command'] == 'chooseWord':
+								game[macClient]['mot'] = MotRandom('liste_francais.txt')
+								valeur = {'MAC':'SERVER', 'command': 'chooseWord', 'param': 'ok'}
+							elif tab['command'] == 'checkLetter':
+								#le client demande de vérifier une lettre
+								game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
+								if tab['param'] in list(game[macClient]['mot']):
+									##remplacer _ par lettre
+									game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
+									senderServer({'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}, client)
+									if '_' not in game[macClient]['fakeMot']:
+										game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
+										valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
+								else:
+									valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
+							elif tab['command'] == 'checkWord':
+								#le client demande de vérifier un mot
+								if tab['param'] == game[macClient]['mot'] :
+									senderServer({'MAC':'SERVER', 'command': 'checkWord', 'param': game[macClient]['mot'] }, client)
+									game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
+									valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
+								else:
+									valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
+							if valeur != {}:
+								senderServer(valeur, client)
+						else:
+							pass
+			except KeyboardInterrupt:
+				print('Vous avez quitté')
+				break
+			except ConnectionAbortedError:
+				pass
+			except Exception as e:
+				if info['log'] :
+					print(type(e).__name__)
+					print(e.__class__.__name__)
+					print(e.__class__.__qualname__)
+					print(e)
+	except KeyboardInterrupt:
+		print('Vous avez quitté')
+		
 
 #Une fonction pour envoyer selon un client
 #@argument: object/dict -> les valeurs a envoyer, object client -> le client
@@ -575,14 +599,11 @@ def senderServer(var, client):
 #@argument: object/dict -> les valeurs a envoyer
 #@return:
 def sender(var):
+	#sender ne gère pas les éreeur, il faut le mettre en try: except
 	global info
 	var['MAC'] = info['id']
-	toSend = json.dumps(var).encode()
-	try:	
-		sock.send(toSend)
-	except Exception as e:
-		print('Error')
-		print(e)
+	toSend = json.dumps(var).encode()	
+	sock.send(toSend)
 
 
 
@@ -593,6 +614,7 @@ def client(chaine):
 	global sock
 	global info
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	sock.settimeout(60)
 	address = chaine.split(':')[0]
 	port = int(chaine.split(':')[1])
 	try :
@@ -603,73 +625,112 @@ def client(chaine):
 		if info['log'] :
 			print('Connecté à : ' + address + ':' + str(port) + ' avec le port ' + str(portClient))
 		info['id'] = info['id'] + ':' + str(portClient)
-		if not info['terminal']:
+		if info['terminal']:
+			#Mettre les options de jeux ici
+			entry = input('1->Commencer la partie\n')
+			while entry != '1' :
+				entry = input('1->Commencer la partie\n')
+			sender({'command': 'startGame', 'param': ''})
+			info['mot'] = ''
+			mot = info['mot']
+		else:
 			app.label.destroy()
+	except TimeoutError:
+			print('Erreur de connexion')
+			sys.exit(500)
+	except ConnectionAbortedError:
+		print('Erreur de connexion')
+		sys.exit(300)
+	except ConnectionResetError:
+		print('Erreur de connexion')
+		sys.exit(200)
+	except ConnectionRefusedError:
+		print('Erreur de connexion')
+		sys.exit(100)
 	except Exception as e:
 		if info['log'] :
+			print(type(e).__name__)
+			print(e.__class__.__name__)
+			print(e.__class__.__qualname__)
 			print(e)
-	while True:
-		try:
-			response = sock.recv(255).decode("utf-8")
-			if info['log'] :
-				print('server->Client:')
-				print(response)
-			tab = json.loads(response)
-			if 'command' in tab:
-				if tab['command'] == 'startGame' :
-					if tab['param'] == 'ko':
-						print('error')
-					else:
-						info['mot'] = tab['param']
-						if info['terminal']:
-							user_display(2)
-						else :
-							user_display(3)
-							displayLetters()
-				elif tab['command'] == 'checkLetter' :
-					if tab['param'] == 'ko':
-						if info['terminal']:
-							printNextStep()
-							user_display(2)
+	try:
+		while True:
+				try:
+					response = sock.recv(255).decode("utf-8")
+				except ConnectionAbortedError:
+					break
+				if info['log'] :
+					print('server->Client:')
+					print(response)
+				tab = json.loads(response)
+				if 'command' in tab:
+					if tab['command'] == 'startGame' :
+						if tab['param'] == 'ko':
+							print('error')
 						else:
-							app.saisi.delete(0, 'end')
-							printNextStep()
-					else:
-						info['mot'] = tab['param'] #on actualise le mot
-						if info['terminal']:
-							user_display(2)
+							info['mot'] = tab['param']
+							if info['terminal']:
+								user_display(2)
+							else :
+								user_display(3)
+								displayLetters()
+					elif tab['command'] == 'checkLetter' :
+						if tab['param'] == 'ko':
+							if info['terminal']:
+								printNextStep()
+								user_display(2)
+							else:
+								app.saisi.delete(0, 'end')
+								printNextStep()
 						else:
-							app.saisi.delete(0, 'end')
-							displayLetters()
-				elif tab['command'] == 'checkWord' :
-					if tab['param'] == 'ko':
-						if info['terminal']:
-							printNextStep()
-							user_display(2)
+							info['mot'] = tab['param'] #on actualise le mot
+							if info['terminal']:
+								user_display(2)
+							else:
+								app.saisi.delete(0, 'end')
+								displayLetters()
+					elif tab['command'] == 'checkWord' :
+						if tab['param'] == 'ko':
+							if info['terminal']:
+								printNextStep()
+								user_display(2)
+							else:
+								app.saisi.delete(0, 'end')
+								printNextStep()
 						else:
-							app.saisi.delete(0, 'end')
-							printNextStep()
-					else:
-						info['mot'] = tab['param'] #on actualise le mot
-						if info['terminal']:
-							user_display(2)
-						else:
-							app.saisi.delete(0, 'end')
-							displayLetters()
-				elif tab['command'] == 'win' :
-					print('WIN')
-					info['fini'] = True
-					info['mot'] = ''
-					if not info['terminal']:
-						endGame()
-				else :
-					pass
-		except ConnectionAbortedError:
-			break
-		except Exception as e:
-			if info['log'] :
-				print('Error socket :')
-				print(e)
+							info['mot'] = tab['param'] #on actualise le mot
+							if info['terminal']:
+								user_display(2)
+							else:
+								app.saisi.delete(0, 'end')
+								displayLetters()
+					elif tab['command'] == 'win' :
+						print('WIN')
+						info['fini'] = True
+						info['mot'] = ''
+						if not info['terminal']:
+							endGame()
+					else :
+						pass
+	except TimeoutError:
+			print('Erreur de connexion')
+			sys.exit(500)
+	except ConnectionAbortedError:
+		print('Erreur de connexion')
+		sys.exit(300)
+	except ConnectionResetError:
+		print('Erreur de connexion')
+		sys.exit(200)
+	except ConnectionRefusedError:
+		print('Erreur de connexion')
+		sys.exit(100)
+	except Exception as e:
+		if info['log'] :
+			print('Error socket :')
+			print(type(e).__name__)
+			print(e.__class__.__name__)
+			print(e.__class__.__qualname__)
+			print(e)
 
 
 
@@ -687,18 +748,9 @@ def user_display(step):
 			entry = input('Veuillez saisir la combinaison adresseIP:Port\n')
 			while not verifIPport(entry):
 				entry = input('Veuillez saisir la combinaison adresseIP:Port\n')
-			thread = threading.Thread(target=client, args=([entry]) )
-			thread.daemon = True
-			thread.start()
-			print('Choix Option')
-			#Mettre les options de jeux ici
-			entry = input('1->Commencer\n')
-			while entry != '1' :
-				entry = input('1->Commencer la partie\n')
-			sender({'command': 'startGame', 'param': ''})
-			info['mot'] = ''
-			mot = info['mot']
-			while not info['fini'] :
+			try:
+				client(entry)
+			except KeyboardInterrupt:
 				pass
 			endGame()
 		elif step == 2:
@@ -791,6 +843,7 @@ def server_display():
 	global sock
 	port = 1500
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	sock.settimeout(0.1)
 	host_name = get_ip()
 	sock.bind((host_name, port))
 	sock.listen(5)
@@ -819,28 +872,34 @@ def serverWaiting(text) :
 	global info
 	global sock
 	threadForClient = []
-	while True:
-		try:
-			if info['terminal']:
-				print('------------------------------------------------------')
-				print(text)
-				print('------------------------------------------------------')
-			# a chaque connection, le serveur démarre un thread
+	if info['terminal']:
+		print('------------------------------------------------------')
+		print(text)
+		print('------------------------------------------------------')
+	try:
+		while True:
 			try:
+				# a chaque connection, le serveur démarre un thread
 				client, addr = sock.accept()
+				if info['log'] :
+					print('Client '+ addr[0] + ':' + str(addr[1]) + '-> connecté')
+				threadForClient = threading.Thread(target=server, args=([ [client, addr] ]))
+				threadForClient.daemon = True
+				threadForClient.start()
+				if info['terminal']:
+					print('------------------------------------------------------')
+					print(text)
+					print('------------------------------------------------------')
 			except KeyboardInterrupt:
 				print('Vous avez quitté')
 				break
-			if info['log'] :
-				print('Client '+ addr[0] + ':' + str(addr[1]) + '-> connecté')
-			threadForClient = threading.Thread(target=server, args=([ [1500, client, addr] ]))
-			threadForClient.daemon = True
-			threadForClient.start()
-		except KeyboardInterrupt:
-			print('Vous avez quitté')
-			break
-		except Exception as e:
-			pass
+			except socket.timeout:
+				pass
+	except KeyboardInterrupt:
+		print('Vous avez quitté')
+		pass
+	except Exception as e:
+		pass
 
 
 
@@ -940,10 +999,11 @@ else :
 	app.mainloop()
 		
 try:
-    sock.close()
+	sock.close()
 except Exception as e:
     #print(e)
 	pass
 
 	
 print('Vous avez quitté ' + nomJeu + ", à bientôt")
+sys.exit(0)
