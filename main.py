@@ -1,13 +1,30 @@
-import tkinter as tk
+import sys
 import socket
 import threading
-import sys
 import uuid
-import turtle
 import json
 import time
 import random
 import webbrowser
+
+
+global info
+info = {}
+global nomJeu
+global game
+global sock
+#check si c'est en terminal
+if '-t' in sys.argv:
+	info['terminal'] = True
+else :
+	info['terminal'] = False
+if not info['terminal']:
+	import tkinter as tk
+	import turtle
+	global app # tkinter
+	global t # la turtle
+
+
 
 #Fonction pour sauvergarder les stats
 #@argument: dict/object -> valeurs a sauvegarder
@@ -393,7 +410,7 @@ def endGame():
 		app.saisi.destroy()
 		app.button.destroy()
 		app.button =  tk.Button(app, text="Rejouer", fg="blue", command=lambda : restartGame() )
-		app.button.grid(row=3, column=1, columnspan=3)
+		app.button.grid(row=4, column=1)
 		app.quit.grid(row=4, column=2)
 		app.quitAndURL = tk.Button(app, text="Quitter Et sortir", fg="red", command=lambda :destroyTkinter(True))
 		app.quitAndURL.grid(row=4, column=3)
@@ -408,7 +425,6 @@ def displayLetters():
 		if info['mot'] != '':
 			#fonction qui gere l'affichage des lettres
 			if info['terminal']:
-				#affichage terminal TODO Raprcoher les lettres
 				print('Le mot est : ' + str(' '.join(list(info['mot']))))
 			else:
 				try:
@@ -439,7 +455,7 @@ def displayLetters():
 #Fonction pour enlever les accents
 #@argument: string -> mot
 #@return: string -> mot sans accents
-def Transform(mot):
+def transform(mot):
 	mot=mot.translate({ord('é'):'e', ord('à'):'a', ord('è'):'e', ord('ê'):'e', ord('ù'):'u', ord('ç'):'c', ord('ô'):'o', ord('î'):'i', ord('ï'):'i', ord('â'):'a'	})
 	return mot
 
@@ -599,10 +615,10 @@ def senderServer(var, client):
 #@argument: object/dict -> les valeurs a envoyer
 #@return:
 def sender(var):
-	#sender ne gère pas les éreeur, il faut le mettre en try: except
+	#sender ne gère pas les erreurs, il faut le mettre en try: except:
 	global info
 	var['MAC'] = info['id']
-	toSend = json.dumps(var).encode()	
+	toSend = json.dumps(var).encode()
 	sock.send(toSend)
 
 
@@ -614,7 +630,7 @@ def client(chaine):
 	global sock
 	global info
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	sock.settimeout(60)
+	#sock.settimeout(60)
 	address = chaine.split(':')[0]
 	port = int(chaine.split(':')[1])
 	try :
@@ -626,11 +642,7 @@ def client(chaine):
 			print('Connecté à : ' + address + ':' + str(port) + ' avec le port ' + str(portClient))
 		info['id'] = info['id'] + ':' + str(portClient)
 		if info['terminal']:
-			#Mettre les options de jeux ici
-			entry = input('1->Commencer la partie\n')
-			while entry != '1' :
-				entry = input('1->Commencer la partie\n')
-			sender({'command': 'startGame', 'param': ''})
+			setOptions()
 			info['mot'] = ''
 			mot = info['mot']
 		else:
@@ -682,6 +694,7 @@ def client(chaine):
 							else:
 								app.saisi.delete(0, 'end')
 								printNextStep()
+								app.button['state'] = 'normal'
 						else:
 							info['mot'] = tab['param'] #on actualise le mot
 							if info['terminal']:
@@ -689,6 +702,7 @@ def client(chaine):
 							else:
 								app.saisi.delete(0, 'end')
 								displayLetters()
+								app.button['state'] = 'normal'
 					elif tab['command'] == 'checkWord' :
 						if tab['param'] == 'ko':
 							if info['terminal']:
@@ -697,6 +711,7 @@ def client(chaine):
 							else:
 								app.saisi.delete(0, 'end')
 								printNextStep()
+								app.button['state'] = 'normal'
 						else:
 							info['mot'] = tab['param'] #on actualise le mot
 							if info['terminal']:
@@ -704,6 +719,7 @@ def client(chaine):
 							else:
 								app.saisi.delete(0, 'end')
 								displayLetters()
+								app.button['state'] = 'normal'
 					elif tab['command'] == 'win' :
 						print('WIN')
 						info['fini'] = True
@@ -758,7 +774,7 @@ def user_display(step):
 			motInArray = list(info['mot'])
 			if '_' in motInArray:
 				entry = input('Veuillez saisir une lettre ou un mot :\n')
-				if(' ' not in entry) :
+				if ' ' not in entry:
 					if len(entry) == 1:
 						#il y a une seule lettre
 						sender({'command': 'checkLetter', 'param': entry})
@@ -793,9 +809,12 @@ def user_display(step):
 					app.label = tk.Label(app, text='Connection à ' + entry)
 					app.label.grid(row=1, column=1, columnspan=3)
 				startThread(entry)
-				#TODO ICI METTRE OTPION
-				app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : sender({'command': 'startGame', 'param': ''}) )
-				app.button_saisi.grid(row=1, column=1, columnspan=3)
+				app.frameOption = tk.Frame(app, height = 50)
+				app.frameOption.grid(row=2, column=1, columnspan=3)
+				app.frameOption.grid_rowconfigure(0, weight=1)
+				#TODO afficher OPTION
+				app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : setOptions() )
+				app.button_saisi.grid(row=3, column=1, columnspan=3)
 		elif step == 3:
 			app.button_saisi.destroy()
 			app.label.destroy()
@@ -815,6 +834,8 @@ def user_display(step):
 			t.hideturtle()
 			t.speed("fast") # ou speed(0) pour instant draw
 		elif step == 4:
+			if not info['terminal']:
+				app.button['state'] = 'disabled'
 			choix = app.saisi.get()
 			if(' ' not in choix) :
 				if len(choix) == 1:
@@ -832,7 +853,33 @@ def startThread(entry) :
 	thread.daemon = True
 	thread.start()
 
-				
+#une fonction pour gérer les options
+#@argument:
+#@return:		
+def setOptions() :
+	global game
+	global app
+	game['option'] = {}
+	try :
+		if info['terminal']:
+			#TODO gérer les options pour le terminal
+			entry = input('1->Commencer la partie\n')
+			while entry != '1' :
+				entry = input('1->Commencer la partie\n')
+		else:
+			if app.optionSaveLetter.get() == True:
+				game['option']['saveLetter'] = True
+			if app.optionLinkDict.get() == True:
+				game['option']['dict'] = app.optionLinkDict.get()
+			if app.optionMulti.get() == True:
+				game['option']['multi'] = True
+			app.frameOption.destroy()
+	except Exception as e:
+		pass
+	
+	sender({'command': 'startGame', 'param': game['option']})
+
+
 #Fonction qui fait l'affichage serveur (sert a relier le thread de socket avec le thread de tkinter)
 #@argument: entier -> l'étape
 #@return:
@@ -920,21 +967,7 @@ def destroyTkinter(openUrl):
 
 ###########################MAIN####################
 
-#Option permetant de savoir si on veut un mode terminal ou non
-global nomJeu
-global game
-global sock
-global app
-global info
-global t # la turtle
-info = {}
 try:
-	#check si c'est en terminal
-	if '-t' in sys.argv:
-		info['terminal'] = True
-	else :
-		info['terminal'] = False
-
 	#check si il y a un mode
 	if '-m' in sys.argv:
 		var = sys.argv.index('-m')
