@@ -852,7 +852,7 @@ def user_display(step):
 
 def activateDisplayByReturn(trigger_event):
 	global info
-	if info['log']
+	if info['log']:
 		print(trigger_event)
 	user_display(4)
 
