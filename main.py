@@ -501,6 +501,7 @@ def verifIPport(IPPort) :
 def MotRandom(ficdico) :
 	liste=open(ficdico,'rb')
 	dico=liste.read().decode('utf-8')
+	#TODO linux pas \r
 	dicobon=dico.split("\r\n")
 	mot=random.choice(dicobon)
 	return mot
@@ -553,6 +554,7 @@ def server(tab):
 						game[macClient] = {}
 						#gérer les options ici
 						temp=int(time.time())
+						#TODO gérer l'erreur si file not found
 						game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': temp}
 						print('le  mot est ' + game[macClient]['mot'])
 						game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
@@ -798,22 +800,35 @@ def user_display(step):
 			entry = app.saisi_Client.get()
 			if not verifIPport(entry):
 				app.saisi_Client.delete(0, 'end')
-				#TODO
-				app.label = tk.Label(app, text="Erreur dans l'adresse, veuillez saisir IP:Port", fg="red")
-				app.label.grid(row=1, column=1, columnspan=3)
+				app.label['text'] = "Erreur dans l'adresse, veuillez saisir IP:Port"
+				app.label.configure(fg="red") 
 			else :
 				app.button_saisi.destroy()
 				app.saisi_Client.destroy()
-				try :
-					app.label['text'] = 'Connection à ' + entry
-				except AttributeError:
-					app.label = tk.Label(app, text='Connection à ' + entry)
-					app.label.grid(row=1, column=1, columnspan=3)
+				app.label['text'] = 'Connection à ' + entry
 				startThread(entry)
-				app.frameOption = tk.Frame(app, height = 50)
-				app.frameOption.grid(row=2, column=1, columnspan=3)
-				app.frameOption.grid_rowconfigure(0, weight=1)
+				app.frameOption = tk.Frame(app, height = 50, bg="yellow")
+				app.frameOption.grid(row=0, column=0, columnspan=2, sticky="nesw")
 				#TODO afficher OPTION
+				app.checkSensitive = tk.StringVar()
+				app.checkSensitive.set("0")
+				app.button1 = tk.Radiobutton(app.frameOption, variable=app.checkSensitive, text='Case Sensitive', value="1")
+				app.button1.grid(row=0, column=0)
+				app.button2 = tk.Radiobutton(app.frameOption, variable=app.checkSensitive, text='Non Case Sensitive', value="0")
+				app.button2.grid(row=0, column=1)
+				app.checkSaveLetter = tk.StringVar()
+				app.checkSaveLetter.set("0")
+				app.button3 = tk.Radiobutton(app.frameOption, variable=app.checkSaveLetter, text='Case Sensitive', value="1")
+				app.button3.grid(row=1, column=0)
+				app.button4 = tk.Radiobutton(app.frameOption, variable=app.checkSaveLetter, text='Non Case Sensitive', value="0")
+				app.button4.grid(row=1, column=1)
+				app.checkMutlijoueur = tk.StringVar()
+				app.checkMutlijoueur.set("0")
+				app.button5 = tk.Radiobutton(app.frameOption, variable=app.checkMutlijoueur, text='Mutli', value="1")
+				app.button5.grid(row=2, column=0)
+				app.button6 = tk.Radiobutton(app.frameOption, variable=app.checkMutlijoueur, text='Non-Mutli', value="0")
+				app.button6.grid(row=2, column=1)
+
 				app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : setOptions() )
 				app.button_saisi.grid(row=1, column=0, columnspan=2)
 		elif step == 3:
