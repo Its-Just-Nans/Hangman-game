@@ -42,7 +42,7 @@ def statsRead(identifant):
 		if identifant in data:
 			return data[identifant]
 
-#Fonction pour récuperer l'adresse MAC de la socket, elle servira d'identifiant
+#Fonction changer le la lettre d'un mot avec un underscore
 #@argument: string -> un mot, string -> le mot en underscore, string -> la lettre
 #@return: string -> l'adresse MAC
 def lettreTire(mot,motAct,lettre) :
@@ -410,10 +410,9 @@ def endGame():
 		app.saisi.destroy()
 		app.button.destroy()
 		app.button =  tk.Button(app, text="Rejouer", fg="blue", command=lambda : restartGame() )
-		app.button.grid(row=4, column=1)
-		app.quit.grid(row=4, column=2)
+		app.button.grid(row=2, column=0)
 		app.quitAndURL = tk.Button(app, text="Quitter Et sortir", fg="red", command=lambda :destroyTkinter(True))
-		app.quitAndURL.grid(row=4, column=3)
+		app.quitAndURL.grid(row=2, column=1)
 
 #Fonction pour afficher le choix les lettres
 #@argument: 
@@ -444,7 +443,7 @@ def displayLetters():
 						label.grid(row=0, column=count)
 						#app.frame.append(label)
 						app.word.append(label)
-						count = count+1
+						count = count + 1
 	except Exception as e:
 		if info['log'] :
 			print(type(e).__name__)
@@ -790,14 +789,16 @@ def user_display(step):
 		if step == 1:
 			app.button_client.destroy()
 			app.button_server.destroy()
+			app.label['text'] = "Saisissez l'adresse IP:Port"
 			app.saisi_Client = tk.Entry(app, width=20)
-			app.saisi_Client.grid(row=2, column=1)
+			app.saisi_Client.grid(row=1, column=0)
 			app.button_saisi = tk.Button(app, text="Se connecter", fg="blue", command=lambda : user_display(2) )
-			app.button_saisi.grid(row=2, column=3)
+			app.button_saisi.grid(row=1, column=1)
 		elif step == 2:
 			entry = app.saisi_Client.get()
 			if not verifIPport(entry):
 				app.saisi_Client.delete(0, 'end')
+				#TODO
 				app.label = tk.Label(app, text="Erreur dans l'adresse, veuillez saisir IP:Port", fg="red")
 				app.label.grid(row=1, column=1, columnspan=3)
 			else :
@@ -814,22 +815,25 @@ def user_display(step):
 				app.frameOption.grid_rowconfigure(0, weight=1)
 				#TODO afficher OPTION
 				app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : setOptions() )
-				app.button_saisi.grid(row=3, column=1, columnspan=3)
+				app.button_saisi.grid(row=1, column=0, columnspan=2)
 		elif step == 3:
 			app.button_saisi.destroy()
 			app.label.destroy()
+			app.rowconfigure(3, weight="1")
+			app.geometry("600x800")
+			app.quitter.grid(row=3, column=0, columnspan=2)
 			app.button =  tk.Button(app, text="Envoyer", fg="blue", command=lambda : user_display(4) )
-			app.button.grid(row=3, column=3)
+			app.button.grid(row=2, column=1)
 			app.saisi = tk.Entry(app, width=20 )
-			app.saisi.grid(row=3, column=1)
+			app.saisi.grid(row=2, column=0)
+			app.saisi.bind("<Return>", activateDisplayByReturn)
 			#On créer une frame pour le mot
-			app.frame = tk.Frame(app, height = 50)
-			app.frame.grid(row=2, column=1, columnspan=3)
-			app.frame.grid_rowconfigure(0, weight=1)
+			app.frame = tk.Frame(app, height = 50, bg="blue")
+			app.frame.grid(row=1, column=0, columnspan=2)
 
 			#On créer le canvas pour le dessin
 			app.canvas = tk.Canvas(app, width = 600, height = 600)
-			app.canvas.grid(row=1, column=1, columnspan=3)
+			app.canvas.grid(row=0, column=0, columnspan=2, sticky="nesw")
 			t = turtle.RawTurtle(app.canvas)
 			t.hideturtle()
 			t.speed("fast") # ou speed(0) pour instant draw
@@ -844,7 +848,14 @@ def user_display(step):
 				elif len(choix) > 1:
 					#il y a plusieurs lettre, c'est mot
 					sender({'command': 'checkWord', 'param': choix})
-			
+
+
+def activateDisplayByReturn(trigger_event):
+	global info
+	if info['log']
+		print(trigger_event)
+	user_display(4)
+
 #une fonction pour démarrer un thread
 #@argument: combinaison ip:port
 #@return:		
@@ -905,10 +916,9 @@ def server_display():
 		app.button_client.destroy()
 		app.button_server.destroy()
 		ip =  host_name + ':' + str(port)
-		app.label = tk.Label(app, text='Ip à saisir '+ ip, fg="blue" )
-		app.label.grid(row=2, column=1, columnspan=3)
+		app.label['text'] = 'Ip à saisir '+ ip
 		app.button_saisi = tk.Button(app, text="Copier", fg="blue", command=lambda : copie(ip) )
-		app.button_saisi.grid(row=1, column=1, columnspan=3)
+		app.button_saisi.grid(row=1, column=0, columnspan=2)
 		threadWaiter = threading.Thread(target=serverWaiting, args=([text]) )
 		threadWaiter.daemon = True
 		threadWaiter.start()
@@ -1020,29 +1030,36 @@ else :
 	app = tk.Tk()
 	app.rowconfigure(0, weight=1)
 	app.rowconfigure(1, weight=1)
+	app.rowconfigure(2, weight=1)
 	app.columnconfigure(0, weight=1)
 	app.columnconfigure(1, weight=1)
-	app.geometry('200x100')
+	app.geometry('300x200')
 	app.title(nomJeu)
 	app.quitter = tk.Button(app, text="Quitter", fg="red", command=lambda:destroyTkinter(False))
-	app.quitter.grid(row=1, column=0, columnspan=2)
+	app.quitter.grid(row=2, column=0, columnspan=2)
+	app.label = tk.Label(app, text="Choisissez votre mode de jeux", fg="blue", bg="white")
+	app.label.grid(row=0, column=0, columnspan=2, sticky="nesw")
 	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display())
-	app.button_server.grid(row=0, column=0, sticky="nesw")
+	app.button_server.grid(row=1, column=0, sticky="nesw")
 	app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
-	app.button_client.grid(row=0, column=1, sticky="nesw")
+	app.button_client.grid(row=1, column=1, sticky="nesw")
 	if info['mode'] != '':
 		if info['mode'] == 'server' :
 			app.button_server.invoke()
 		elif info['mode'] == 'client':
 			app.button_client.invoke()
 	app.mainloop()
+try:
+	#si on close avec la croix, cela ne marche pas
 	app.destroy()
+except Exception as e:
+	pass
 try:
 	sock.close()
 except Exception as e:
     #print(e)
 	pass
 
-	
+
 print('Vous avez quitté ' + nomJeu + ", à bientôt")
 sys.exit(0)
