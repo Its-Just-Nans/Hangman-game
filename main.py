@@ -962,8 +962,12 @@ def destroyTkinter(openUrl):
 	global sock
 	if openUrl:
 		webbrowser.open_new('https://media.interieur.gouv.fr/deplacement-covid-19/')
-	app.destroy()
-	sock.close()
+	try:
+		sock.close()
+	except Exception as e:
+		pass
+	app.quit()
+	
 
 ###########################MAIN####################
 
@@ -1014,23 +1018,25 @@ if info['terminal']:
 else :
 	global app
 	app = tk.Tk()
-	#app.geometry('200x100')
+	app.rowconfigure(0, weight=1)
+	app.rowconfigure(1, weight=1)
+	app.columnconfigure(0, weight=1)
+	app.columnconfigure(1, weight=1)
+	app.geometry('200x100')
 	app.title(nomJeu)
-	app.quit = tk.Button(app, text="Quitter", fg="red", command=lambda :destroyTkinter(False))
-	app.quit.grid(row=4, column=1,columnspan=3)
+	app.quitter = tk.Button(app, text="Quitter", fg="red", command=lambda:destroyTkinter(False))
+	app.quitter.grid(row=1, column=0, columnspan=2)
 	app.button_server = tk.Button(app, text="Mode serveur", fg="blue", command=lambda :server_display())
-	app.button_server.grid(row=2, column=1)
+	app.button_server.grid(row=0, column=0, sticky="nesw")
 	app.button_client = tk.Button(app, text="Mode client", fg="blue", command=lambda :user_display(1))
-	app.button_client.grid(row=2, column=3)
+	app.button_client.grid(row=0, column=1, sticky="nesw")
 	if info['mode'] != '':
 		if info['mode'] == 'server' :
 			app.button_server.invoke()
 		elif info['mode'] == 'client':
 			app.button_client.invoke()
-	#TODO root.iconbitmap('C:\\Users\\Pc\\Desktop\\icon.ico')
-	#https://www.iconbros.com/icons/ib-g-hangman
 	app.mainloop()
-		
+	app.destroy()
 try:
 	sock.close()
 except Exception as e:
