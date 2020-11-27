@@ -1,19 +1,28 @@
-# Hangman-game
-
+#Hangman-game
 Project for DUT R&T
 
-Documentation :
 
-Hang-man game 
+##Documentation :
 
-Ce programme est un pendu réalisé en tant que projet scolaire.
+You can use the program just with
+```python
 
-Liste des options :
+python3 main.py #on linux
 
-- `-t` Cette option permets de démarrer le Pendu en mode terminal
+py main.py #on windows
+```
 
-- `-log` Cette option permets de "debug" étant donné quelle vous afficheras les logs à chaque fois que vous faites quelquechose
-  
-- `-m` cette option permets de choisir le mode `server` ou `client` afin de démarrer directement un des deux modes 
+You can also add some options :
+```python
+python3 main.py [-t] [-log] [-m server|client]
+```
+> Legend :
 
+> `t` is used to activate terminal mode
+
+> `-log` show you the log, for example the data sent
+
+> `-m client|server` is used to start directly in the mode you selected
+
+> note that it is `-m client`OR `-m server`
 
