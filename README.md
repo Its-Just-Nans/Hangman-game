@@ -1,6 +1,7 @@
 #Hangman-game
 Project for DUT R&T
 
+
 ##Documentation :
 
 You can use the program just with
@@ -24,3 +25,4 @@ python3 main.py [-t] [-log] [-m server|client]
 > `-m client|server` is used to start directly in the mode you selected
 
 > note that it is `-m client`OR `-m server`
+
