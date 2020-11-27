@@ -16,7 +16,11 @@ You can also add some options :
 python3 main.py [-t] [-log] [-m server|client]
 ```
 > Legend :
+
 > `t` is used to activate terminal mode
+
 > `-log` show you the log, for example the data sent
+
 > `-m client|server` is used to start directly in the mode you selected
+
 > note that it is `-m client`OR `-m server`
