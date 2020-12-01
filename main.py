@@ -696,6 +696,7 @@ def client(chaine):
 								app.saisi.delete(0, 'end')
 								printNextStep()
 								app.button['state'] = 'normal'
+								app.saisi.bind("<Return>", activateDisplayByReturn)
 						else:
 							info['mot'] = tab['param'] #on actualise le mot
 							if info['terminal']:
@@ -704,6 +705,7 @@ def client(chaine):
 								app.saisi.delete(0, 'end')
 								displayLetters()
 								app.button['state'] = 'normal'
+								app.saisi.bind("<Return>", activateDisplayByReturn)
 					elif tab['command'] == 'checkWord' :
 						if tab['param'] == 'ko':
 							if info['terminal']:
@@ -713,6 +715,7 @@ def client(chaine):
 								app.saisi.delete(0, 'end')
 								printNextStep()
 								app.button['state'] = 'normal'
+								app.saisi.bind("<Return>", activateDisplayByReturn)
 						else:
 							info['mot'] = tab['param'] #on actualise le mot
 							if info['terminal']:
@@ -721,6 +724,7 @@ def client(chaine):
 								app.saisi.delete(0, 'end')
 								displayLetters()
 								app.button['state'] = 'normal'
+								app.saisi.bind("<Return>", activateDisplayByReturn)
 					elif tab['command'] == 'win' :
 						print('WIN')
 						info['fini'] = True
@@ -855,6 +859,7 @@ def user_display(step):
 		elif step == 4:
 			if not info['terminal']:
 				app.button['state'] = 'disabled'
+				app.saisi.unbind("<Return>")
 			choix = app.saisi.get()
 			if(' ' not in choix) :
 				if len(choix) == 1:
@@ -872,8 +877,8 @@ def activateDisplayByReturn(trigger_event):
 	user_display(4)
 
 #une fonction pour démarrer un thread
-#@argument: combinaison ip:port
-#@return:		
+#@argument: string -> combinaison ip:port
+#@return:
 def startThread(entry) :
 	thread = threading.Thread(target=client, args=([entry]) )
 	thread.daemon = True
