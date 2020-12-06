@@ -439,7 +439,6 @@ def displayLetters():
 						for element in app.word :
 							element['text'] = tabLetter[count]
 							count = count+1
-					#TODO TEST
 				except :
 					app.word = []
 					tabLetter = list(info['mot'])
@@ -447,7 +446,6 @@ def displayLetters():
 					for letter in tabLetter :
 						label = tk.Label(app.frame, text = letter, borderwidth = 2, relief="ridge", font=('Helvetica', 15))
 						label.grid(row=0, column=count)
-						#app.frame.append(label)
 						app.word.append(label)
 						count = count + 1
 	except Exception as e:
