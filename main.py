@@ -405,11 +405,16 @@ def endGame():
 		if choix == '1':
 			restartGame()
 		elif choix == '2':
-			pass
+			try:
+				sock.close()
+			except Exception as e:
+				pass
+			print('Vous avez quitté ' + nomJeu + ", à bientôt")
+			sys.exit(0)
 	else :
 		app.saisi.destroy()
 		app.button.destroy()
-		app.button =  tk.Button(app, text="Rejouer", fg="blue", command=lambda : restartGame() )
+		app.button = tk.Button(app, text="Rejouer", fg="blue", command=lambda : restartGame() )
 		app.button.grid(row=2, column=0)
 		app.quitAndURL = tk.Button(app, text="Quitter Et sortir", fg="red", command=lambda :destroyTkinter(True))
 		app.quitAndURL.grid(row=2, column=1)
@@ -729,8 +734,14 @@ def client(chaine):
 						print('WIN')
 						info['fini'] = True
 						info['mot'] = ''
-						if not info['terminal']:
-							endGame()
+						textString = ConvertDateIntoLetters(tab['param'])
+						if info['terminal']:
+							print(textString)
+						else:
+							app.canvas.destroy()
+							app.label = tk.Label(app, text=textString, fg="blue", bg="white")
+							app.label.grid(row=0, column=0, columnspan=2, sticky="nesw")
+						endGame()
 					else :
 						pass
 	except TimeoutError:
@@ -763,6 +774,8 @@ def user_display(step):
 	global info
 	global app
 	global t
+	global options
+	global game
 	if info['terminal']:
 		if step == 1:
 			print('Vous êtes désormais un joueur Suspensus')
@@ -780,6 +793,12 @@ def user_display(step):
 			if '_' in motInArray:
 				entry = input('Veuillez saisir une lettre ou un mot :\n')
 				if ' ' not in entry:
+					if game['option']['saveLetter']:
+						if entry in game['saveLetter']:
+							print('--> Deja mis, veuillez saisir une autre lettre :')
+							user_display(2)
+						else:
+							game['saveLetter'].append(entry)
 					if len(entry) == 1:
 						#il y a une seule lettre
 						sender({'command': 'checkLetter', 'param': entry})
@@ -805,33 +824,37 @@ def user_display(step):
 			if not verifIPport(entry):
 				app.saisi_Client.delete(0, 'end')
 				app.label['text'] = "Erreur dans l'adresse, veuillez saisir IP:Port"
-				app.label.configure(fg="red") 
+				app.label.configure(fg="red")
 			else :
+				info['ip'] = entry
 				app.button_saisi.destroy()
 				app.saisi_Client.destroy()
 				app.label['text'] = 'Connection à ' + entry
 				startThread(entry)
+				app.geometry('400x400')
 				app.frameOption = tk.Frame(app, height = 50, bg="yellow")
 				app.frameOption.grid(row=0, column=0, columnspan=2, sticky="nesw")
-				#TODO afficher OPTION
-				app.checkSensitive = tk.StringVar()
-				app.checkSensitive.set("0")
-				app.button1 = tk.Radiobutton(app.frameOption, variable=app.checkSensitive, text='Case Sensitive', value="1")
-				app.button1.grid(row=0, column=0)
-				app.button2 = tk.Radiobutton(app.frameOption, variable=app.checkSensitive, text='Non Case Sensitive', value="0")
-				app.button2.grid(row=0, column=1)
-				app.checkSaveLetter = tk.StringVar()
-				app.checkSaveLetter.set("0")
-				app.button3 = tk.Radiobutton(app.frameOption, variable=app.checkSaveLetter, text='Case Sensitive', value="1")
-				app.button3.grid(row=1, column=0)
-				app.button4 = tk.Radiobutton(app.frameOption, variable=app.checkSaveLetter, text='Non Case Sensitive', value="0")
-				app.button4.grid(row=1, column=1)
-				app.checkMutlijoueur = tk.StringVar()
-				app.checkMutlijoueur.set("0")
-				app.button5 = tk.Radiobutton(app.frameOption, variable=app.checkMutlijoueur, text='Mutli', value="1")
-				app.button5.grid(row=2, column=0)
-				app.button6 = tk.Radiobutton(app.frameOption, variable=app.checkMutlijoueur, text='Non-Mutli', value="0")
-				app.button6.grid(row=2, column=1)
+				app.frameOption.columnconfigure(0, weight=1)
+				app.frameOption.columnconfigure(1, weight=1)
+				counterRow = 0
+				counterLabel = 0
+				app.buttons = []
+				app.labels = []
+				counter = 0
+				game['optiontk'] = {}
+				for option in options['name'] :
+					app.frameOption.rowconfigure(counterRow, weight=1)
+					counterRow = counterRow + 1
+					app.frameOption.rowconfigure(counterRow, weight=1)
+					counterRow = counterRow + 1
+					app.labels.append(tk.Label(app.frameOption, text=options['text'][counter], borderwidth = 2, relief="ridge", font=('Helvetica', 15)).grid(row=counterLabel, column=0, columnspan=2, sticky="nesw"))
+					counterLabel = counterLabel + 1
+					game['optiontk'][option] = tk.StringVar()
+					game['optiontk'][option].set("0")
+					app.buttons.append(tk.Radiobutton(app.frameOption, variable=game['optiontk'][option], text='Oui', value="1").grid(row=counterLabel, column=0, sticky="nesw"))
+					app.buttons.append(tk.Radiobutton(app.frameOption, variable=game['optiontk'][option], text='Non', value="0").grid(row=counterLabel, column=1, sticky="nesw"))
+					counterLabel = counterLabel + 1
+					counter = counter + 1
 
 				app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : setOptions() )
 				app.button_saisi.grid(row=1, column=0, columnspan=2)
@@ -861,7 +884,14 @@ def user_display(step):
 				app.button['state'] = 'disabled'
 				app.saisi.unbind("<Return>")
 			choix = app.saisi.get()
-			if(' ' not in choix) :
+			if ' ' not in choix:
+				if game['option']['saveLetter']:
+					if choix in game['saveLetter']:
+						app.button['state'] = 'normal'
+						app.saisi.bind("<Return>", activateDisplayByReturn)
+						return None
+					else:
+						game['saveLetter'].append(choix)
 				if len(choix) == 1:
 					#il y a une seule lettre
 					sender({'command': 'checkLetter', 'param': choix})
@@ -870,11 +900,22 @@ def user_display(step):
 					sender({'command': 'checkWord', 'param': choix})
 
 
+
 def activateDisplayByReturn(trigger_event):
 	global info
 	if info['log']:
 		print(trigger_event)
 	user_display(4)
+
+def restartGame():
+	app.frame.destroy()
+	app.saisi_Client = tk.Entry(app, width=20)
+	app.saisi_Client.grid(row=1, column=0)
+	app.saisi_Client.insert('end', info['ip'])
+	app.quitAndURL.destroy()
+	app.button.destroy()
+	user_display(2)
+
 
 #une fonction pour démarrer un thread
 #@argument: string -> combinaison ip:port
@@ -889,25 +930,47 @@ def startThread(entry) :
 #@return:		
 def setOptions() :
 	global game
+	global options
 	global app
 	game['option'] = {}
-	try :
-		if info['terminal']:
-			#TODO gérer les options pour le terminal
+	if info['terminal']:
+		for nameOption in options['name'] :
+			choix = input(nameOption + '?\n1->Oui\n2->Non\n')
+			while(choix != '1' and choix != '2') :
+				choix = input(nameOption + '?\n1->Rejouer\n2->Quitter\n')
+			if choix == "1":
+				if nameOption == 'dict':
+					lienDict = input('Saisir le lien\n')
+					game['option'][nameOption] = lienDict
+				else :
+					if nameOption == 'saveLetter':
+						game['saveLetter'] = []
+					game['option'][nameOption] = True
+			else:
+				game['option'][nameOption] = False
+
+		entry = input('1->Commencer la partie\n')
+		while entry != '1' :
 			entry = input('1->Commencer la partie\n')
-			while entry != '1' :
-				entry = input('1->Commencer la partie\n')
-		else:
-			if app.optionSaveLetter.get() == True:
-				game['option']['saveLetter'] = True
-			if app.optionLinkDict.get() == True:
-				game['option']['dict'] = app.optionLinkDict.get()
-			if app.optionMulti.get() == True:
-				game['option']['multi'] = True
-			app.frameOption.destroy()
-	except Exception as e:
-		pass
-	
+	else:
+		counter = 0
+		for nameOption in options['name'] :
+			try:
+
+				if game['optiontk'][nameOption].get() == "1":
+					if nameOption == 'dict':
+						#TODO popup lien
+						game['option'][nameOption] = lien
+					else :
+						if nameOption == 'saveLetter':
+							game['saveLetter'] = []
+						game['option'][nameOption] = True
+				else:
+						game['option'][nameOption] = False
+			except Exception as e:
+				pass
+			counter = counter + 1
+		app.frameOption.destroy()
 	sender({'command': 'startGame', 'param': game['option']})
 
 
@@ -1022,6 +1085,10 @@ info['etape'] = 1
 info['fini'] = False
 info['param'] = ''
 info['id'] = get_mac()
+global options
+options = {}
+options['name'] = ['caseSensitive', 'saveLetter', 'multi', 'dict']
+options['text'] = ['Case Sensitive', 'Sauvegarder les lettres', 'Mutlijoueur', 'Dictionnaire custom']
 game = {}
 nomJeu = 'HANGMAN'
 info['port'] = 1500
@@ -1074,6 +1141,7 @@ try:
 	app.destroy()
 except Exception as e:
 	pass
+
 try:
 	sock.close()
 except Exception as e:
