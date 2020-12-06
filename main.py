@@ -6,7 +6,8 @@ import json
 import time
 import random
 import webbrowser
-
+import urllib.request as wget
+from datetime import datetime
 
 global info
 info = {}
@@ -503,12 +504,13 @@ def verifIPport(IPPort) :
 #choisi un mot random dans un dictionnaire
 #argument: string -> name/path of the ditionnary
 #@return: string -> a random word
-def MotRandom(ficdico) :
+def motRandom(ficdico) :
 	liste=open(ficdico,'rb')
 	dico=liste.read().decode('utf-8')
-	#TODO linux pas \r
-	dicobon=dico.split("\r\n")
-	mot=random.choice(dicobon)
+	text = dico.replace('\r', '')
+	dicobon = text.split("\n")
+	mot = random.choice(dicobon)
+	liste.close()
 	return mot
 
 #transforme les lettres du mot en underscore
@@ -557,10 +559,32 @@ def server(tab):
 					macClient = tab['MAC']
 					if 'command' in tab and tab['command'] == 'startGame':
 						game[macClient] = {}
-						#gérer les options ici
+						game['option'] = tab['param']
 						temp=int(time.time())
-						#TODO gérer l'erreur si file not found
-						game[macClient] = {'mot': MotRandom('liste_francais.txt'), 'nbTry': 0, 'TimeStart': temp}
+						game[macClient] = {'nbTry': 0, 'TimeStart': temp}
+						motRand = ''
+						if game['option']['dict']:
+							response = wget.urlopen(game['option']['dict'])
+							webContent = response.read().decode('utf-8')
+							text = webContent.replace('\r', '')
+							now = datetime.now()
+							dateString = now.strftime("%d-%m-%Y_%H-%M-%S")
+							nameDico = dateString + '_dico.txt'
+							f = open(nameDico, "w")
+							f.write(text)
+							f.close()
+							try:
+								motRand = motRandom(nameDico)
+							except Exception as e:
+								pass
+								#TODO gérer l'erreur si file not found
+						else :
+							try:
+								motRand = motRandom('liste_francais.txt')
+							except Exception as e:
+								pass
+								#TODO gérer l'erreur si file not found
+						game[macClient]['mot'] = motRand
 						print('le  mot est ' + game[macClient]['mot'])
 						game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
 						senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': game[macClient]['fakeMot']}, client)
@@ -568,7 +592,7 @@ def server(tab):
 						if macClient in game and 'command' in tab:
 							valeur = {}
 							if tab['command'] == 'chooseWord':
-								game[macClient]['mot'] = MotRandom('liste_francais.txt')
+								game[macClient]['mot'] = motRandom('liste_francais.txt')
 								valeur = {'MAC':'SERVER', 'command': 'chooseWord', 'param': 'ok'}
 							elif tab['command'] == 'checkLetter':
 								#le client demande de vérifier une lettre
@@ -908,13 +932,17 @@ def activateDisplayByReturn(trigger_event):
 	user_display(4)
 
 def restartGame():
-	app.frame.destroy()
-	app.saisi_Client = tk.Entry(app, width=20)
-	app.saisi_Client.grid(row=1, column=0)
-	app.saisi_Client.insert('end', info['ip'])
-	app.quitAndURL.destroy()
-	app.button.destroy()
-	user_display(2)
+	global info
+	if info['terminal']:
+		user_display(1)
+	else:
+		app.frame.destroy()
+		app.saisi_Client = tk.Entry(app, width=20)
+		app.saisi_Client.grid(row=1, column=0)
+		app.saisi_Client.insert('end', info['ip'])
+		app.quitAndURL.destroy()
+		app.button.destroy()
+		user_display(2)
 
 
 #une fonction pour démarrer un thread
@@ -934,13 +962,14 @@ def setOptions() :
 	global app
 	game['option'] = {}
 	if info['terminal']:
+		counter = 0
 		for nameOption in options['name'] :
-			choix = input(nameOption + '?\n1->Oui\n2->Non\n')
+			choix = input(options['text'][counter] + ' ?\n1->Oui\n2->Non\n')
 			while(choix != '1' and choix != '2') :
-				choix = input(nameOption + '?\n1->Rejouer\n2->Quitter\n')
+				choix = input(options['text'][counter] + '?\n1->Rejouer\n2->Quitter\n')
 			if choix == "1":
 				if nameOption == 'dict':
-					lienDict = input('Saisir le lien\n')
+					lienDict = input('Saisir le lien (URL) du dictionnaire\n')
 					game['option'][nameOption] = lienDict
 				else :
 					if nameOption == 'saveLetter':
@@ -948,7 +977,7 @@ def setOptions() :
 					game['option'][nameOption] = True
 			else:
 				game['option'][nameOption] = False
-
+			counter = counter + 1
 		entry = input('1->Commencer la partie\n')
 		while entry != '1' :
 			entry = input('1->Commencer la partie\n')
@@ -1044,7 +1073,7 @@ def serverWaiting(text) :
 
 
 #Convertis la date noté j-h-m-s en : Vous avez mis : j jours h heures m minutes et s secondes
-#@arguments date noté j-h-m-s
+#@arguments string -> date noté j-h-m-s
 #@return : string -> date
 def ConvertDateIntoLetters(date):
   liste_date = date.split('-')
