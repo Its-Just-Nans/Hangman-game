@@ -800,7 +800,7 @@ def user_display(step):
 	global game
 	if info['terminal']:
 		if step == 1:
-			print('Vous êtes désormais un joueur Suspensus')
+			print('Vous êtes désormais un joueur ' + nomJeu)
 			entry = input('Veuillez saisir la combinaison adresseIP:Port\n')
 			while not verifIPport(entry):
 				entry = input('Veuillez saisir la combinaison adresseIP:Port\n')
