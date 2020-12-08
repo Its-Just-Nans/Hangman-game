@@ -29,7 +29,7 @@ if not info['terminal']:
 
 #Fonction pour sauvergarder les stats
 #@argument: dict/object -> valeurs a sauvegarder
-#@return:
+#@return: 
 def statsWrite (donnees):
 	with open("stats.json", "w") as file:
 		json.dump(donnees, file)
@@ -523,7 +523,7 @@ def changeWordInDash(word):
 
 #Fonction qui permet de créer le serveur en ouvrant une socket
 #@argument: entier -> numero de PORT
-#@return:
+#@return: 
 def server(tab):
 	global sock
 	global game
