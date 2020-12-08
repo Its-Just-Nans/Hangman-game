@@ -523,7 +523,7 @@ def changeWordInDash(word):
 
 #Fonction qui permet de créer le serveur en ouvrant une socket
 #@argument: entier -> numero de PORT
-#@return: 
+#@return:
 def server(tab):
 	global sock
 	global game
