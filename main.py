@@ -560,13 +560,13 @@ def server(tab):
 					macClient = tab['MAC']
 					if 'command' in tab and tab['command'] == 'startGame':
 						game[macClient] = {}
-						game['option'] = tab['param']
 						temp=int(time.time())
 						game[macClient] = {'nbTry': 0, 'TimeStart': temp}
+						game[macClient]['option'] = tab['param']
 						motRand = ''
-						if game['option']['dict']:
+						if game[macClient]['option']['dict']:
 							try:
-								response = wget.urlopen(game['option']['dict'])
+								response = wget.urlopen(game[macClient]['option']['dict'])
 								webContent = response.read().decode('utf-8')
 								text = webContent.replace('\r', '')
 								now = datetime.now()
@@ -587,7 +587,7 @@ def server(tab):
 								print('Erreur dico liste_francais.txt')
 								print(e.__class__.__name__)
 							try:
-								if game['option']['caseSensitive']:
+								if game[macClient]['option']['caseSensitive']:
 									motRand = transform(motRand)
 							except Exception as e:
 								print('Erreur transformation du mot')
@@ -595,6 +595,26 @@ def server(tab):
 						game[macClient]['mot'] = motRand
 						print('le  mot est ' + game[macClient]['mot'])
 						game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
+						if game[macClient]['option']['multi']:
+							#check s'il est adversaire de qql
+							time.sleep(5)
+							clientActual = list(game.keys())
+							for joueur in clientActual:
+								if(joueur != macClient) :
+									if game[joueur]['option']['multi'] == macClient:
+										game[macClient]['option']['multi'] = joueur
+									else:
+										game[macClient]['option']['multi'] = True
+							if game[macClient]['option']['multi']:
+								#il n'est pas l'adversaire, il est donc en recherche
+								oldClient = list(game.keys())
+								time.sleep(15)
+								newClient = list(game.keys())
+								for element in newClient:
+									if element not in oldClient:
+										game[macClient]['option']['multi'] = element
+									else:
+										game[macClient]['option']['multi'] = False
 						senderServer({'MAC':'SERVER', 'command': 'startGame', 'param': game[macClient]['fakeMot']}, client)
 					else :
 						if macClient in game and 'command' in tab:
@@ -611,7 +631,14 @@ def server(tab):
 									senderServer({'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}, client)
 									if '_' not in game[macClient]['fakeMot']:
 										game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
-										valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
+										if game[macClient]['option']['multi'] :
+											if game[macClient]['option']['multi'] == 'loose':
+												valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) , 'param2': 'loose'+ game[macClient]['option']['multi'] }
+											else:
+												valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) , 'param2': 'win'+ game[macClient]['option']['multi'] }
+												game[macClient]['option']['multi'] = 'loose'
+										else:
+											valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time'])}
 										#on save les stats :
 										try:
 											macClient = macClient.split(':')
@@ -627,7 +654,14 @@ def server(tab):
 								if tab['param'] == game[macClient]['mot'] :
 									senderServer({'MAC':'SERVER', 'command': 'checkWord', 'param': game[macClient]['mot'] }, client)
 									game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
-									valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
+									if game[macClient]['option']['multi'] :
+										if game[macClient]['option']['multi'] == 'loose':
+											valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) , 'param2': 'loose-'+ game[macClient]['option']['multi'] }
+										else:
+											valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) , 'param2': 'win-'+ game[macClient]['option']['multi'] }
+											game[macClient]['option']['multi'] = 'loose'
+									else:
+										valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time'])}
 									#on save les stats :
 									try:
 										macClient = macClient.split(':')
