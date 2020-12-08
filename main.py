@@ -29,7 +29,7 @@ if not info['terminal']:
 
 #Fonction pour sauvergarder les stats
 #@argument: dict/object -> valeurs a sauvegarder
-#@return: 
+#@return:
 def statsWrite (donnees):
 	with open("stats.json", "w") as file:
 		json.dump(donnees, file)
