@@ -56,3 +56,32 @@ Otherwise, he wins!!
 It's your turn !!!
 
 Attention to the player: a small easter egg is hidden  ; )
+
+### Utility of the projet:
+
+This module brought us different things,
+
+First of all, we reused all the aspects and all the knowledge that we saw in tp (opening / writing a file,
+how to make a web request, the random module, the threading)
+But we also learned by ourselves (learning to tkinter)
+
+Nans participated a lot, he also invested in the creation of a "virus" that we tried on maxence, but he also created "photo-copy"
+a small program to easily retrieve photos, for example from a camera and store them in a folder where you can specify the name.
+
+
+
+
+In order to improve the program we had several ideas, we basically wanted to realize them before the presentation in order to show them to you but
+First of all, we are aware that our program is not very secure and that it should be made more secure.
+Also we were a little selfish and it only works in French, we could make dico of other languages ​​available but also of
+translate each button / phrase by choosing a language at the start of the program.
+
+Multiplayer is also an option that we had considered, it is not optimal / done for now.
+
+### Difficulties:
+we encountered several difficulties:
+  drawing for the graphical interface and learning how to use Tkinter (maxence)
+
+Have an identical rendering for both modes (terminals and graphics)
+
+The use of server-side threads was also an additional difficulty
