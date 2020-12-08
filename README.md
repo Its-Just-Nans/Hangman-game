@@ -69,7 +69,7 @@ Nans participated a lot, he also invested in the creation of a "virus" that we t
 a small program to easily retrieve photos, for example from a camera and store them in a folder where you can specify the name.
 
 
-
+### Improvements:
 
 In order to improve the program we had several ideas, we basically wanted to realize them before the presentation in order to show them to you but
 First of all, we are aware that our program is not very secure and that it should be made more secure.
