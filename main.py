@@ -30,18 +30,21 @@ if not info['terminal']:
 #Fonction pour sauvergarder les stats
 #@argument: dict/object -> valeurs a sauvegarder
 #@return: 
-def statsWrite (donnees):
+def statsWrite(donnees):
 	with open("stats.json", "w") as file:
 		json.dump(donnees, file)
 
 #Fonction pour charger les stats
 #@argument: string -> id
 #@return: dict/object -> stats de l'id
-def statsRead(identifant):
-	with open("stats.json", "r") as read_file:
+def statsRead():
+	with open("stats.json") as read_file:
 		data = json.load(read_file)
-		if identifant in data:
-			return data[identifant]
+		if data:
+			return data
+		else :
+			fakeValue = {"FauxJoueur": {"nbPartie": 0, "autre" : "text"}}
+			return fakeValue
 
 #Fonction changer le la lettre d'un mot avec un underscore
 #@argument: string -> un mot, string -> le mot en underscore, string -> la lettre
@@ -609,6 +612,14 @@ def server(tab):
 									if '_' not in game[macClient]['fakeMot']:
 										game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
 										valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
+										#on save les stats :
+										try:
+											macClient = macClient.split(':')
+											macClient = macClient[0]
+											saveStats(macClient)
+										except Exception as e:
+											print('Erreur écriture Stats')
+											print(e.__class__.__name__)
 								else:
 									valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
 							elif tab['command'] == 'checkWord':
@@ -617,6 +628,14 @@ def server(tab):
 									senderServer({'MAC':'SERVER', 'command': 'checkWord', 'param': game[macClient]['mot'] }, client)
 									game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
 									valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
+									#on save les stats :
+									try:
+										macClient = macClient.split(':')
+										macClient = macClient[0]
+										saveStats(macClient)
+									except Exception as e:
+										print('Erreur écriture Stats')
+										print(e.__class__.__name__)
 								else:
 									valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
 							if valeur != {}:
@@ -637,6 +656,15 @@ def server(tab):
 	except KeyboardInterrupt:
 		print('Vous avez quitté')
 		
+
+def saveStats(macJoueur):
+	allStats = statsRead()
+	if macJoueur in allStats:
+		nbPartie = allStats[macJoueur]['nbPartie']
+		allStats[macJoueur]['nbPartie'] = nbPartie + 1
+	else:
+		allStats[macJoueur] = {"nbPartie": 1}
+	statsWrite(allStats)
 
 #Une fonction pour envoyer selon un client
 #@argument: object/dict -> les valeurs a envoyer, object client -> le client
