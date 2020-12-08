@@ -562,26 +562,33 @@ def server(tab):
 						game[macClient] = {'nbTry': 0, 'TimeStart': temp}
 						motRand = ''
 						if game['option']['dict']:
-							response = wget.urlopen(game['option']['dict'])
-							webContent = response.read().decode('utf-8')
-							text = webContent.replace('\r', '')
-							now = datetime.now()
-							dateString = now.strftime("%d-%m-%Y_%H-%M-%S")
-							nameDico = dateString + '_dico.txt'
-							f = open(nameDico, "w")
-							f.write(text)
-							f.close()
 							try:
+								response = wget.urlopen(game['option']['dict'])
+								webContent = response.read().decode('utf-8')
+								text = webContent.replace('\r', '')
+								now = datetime.now()
+								dateString = now.strftime("%d-%m-%Y_%H-%M-%S")
+								nameDico = dateString + '_dico.txt'
+								f = open(nameDico, "w")
+								f.write(text)
+								f.close()
 								motRand = motRandom(nameDico)
 							except Exception as e:
-								pass
-								#TODO gérer l'erreur si file not found
+								print('Erreur dico')
+								print(e.__class__.__name__)
+								motRand = motRandom('liste_francais.txt')
 						else :
 							try:
 								motRand = motRandom('liste_francais.txt')
 							except Exception as e:
-								pass
-								#TODO gérer l'erreur si file not found
+								print('Erreur dico liste_francais.txt')
+								print(e.__class__.__name__)
+							try:
+								if game['option']['caseSensitive']:
+									motRand = transform(motRand)
+							except Exception as e:
+								print('Erreur transformation du mot')
+								print(e.__class__.__name__)
 						game[macClient]['mot'] = motRand
 						print('le  mot est ' + game[macClient]['mot'])
 						game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
@@ -958,6 +965,7 @@ def setOptions() :
 	global game
 	global options
 	global app
+	global info
 	game['option'] = {}
 	if info['terminal']:
 		counter = 0
@@ -986,11 +994,11 @@ def setOptions() :
 
 				if game['optiontk'][nameOption].get() == "1":
 					if nameOption == 'dict':
-						#TODO popup lien
-						game['option'][nameOption] = lien
+						createPopUp()
+					elif nameOption == 'saveLetter':
+						game['saveLetter'] = []
+						game['option'][nameOption] = True
 					else :
-						if nameOption == 'saveLetter':
-							game['saveLetter'] = []
 						game['option'][nameOption] = True
 				else:
 						game['option'][nameOption] = False
@@ -1000,6 +1008,38 @@ def setOptions() :
 		app.frameOption.destroy()
 	sender({'command': 'startGame', 'param': game['option']})
 
+
+
+def createPopUp():
+	global popUp
+	popUp = tk.Tk()
+	popUp.rowconfigure(0, weight=1)
+	popUp.rowconfigure(1, weight=1)
+	popUp.rowconfigure(2, weight=1)
+	popUp.columnconfigure(0, weight=1)
+	popUp.columnconfigure(1, weight=1)
+	popUp.geometry('300x100')
+	popUp.title('Dictionnaire')
+	popUp.label = tk.Label(popUp, text="Saisissez le lien du dictionnaire", fg="blue", bg="white")
+	popUp.label.grid(row=0, column=0, columnspan=2, sticky="nesw")
+	popUp.lienDict = tk.Entry(popUp, width=20)
+	popUp.lienDict.grid(row=1, column=0, columnspan=2)
+	popUp.envoyer = tk.Button(popUp, text="Annuler", fg="red", command=lambda:setOptionDict(False) )
+	popUp.envoyer.grid(row=2, column=0)
+	popUp.suivant = tk.Button(popUp, text="Suivant", fg="blue", command=lambda:setOptionDict(True) )
+	popUp.suivant.grid(row=2, column=1)
+	popUp.mainloop()
+
+def setOptionDict(variable):
+	global popUp
+	if variable:
+		game['option']['dict'] = popUp.lienDict.get()
+	else:
+		game['option']['dict'] = False
+	popUp.destroy()
+	popUp.quit()
+	return 0
+	
 
 #Fonction qui fait l'affichage serveur (sert a relier le thread de socket avec le thread de tkinter)
 #@argument: entier -> l'étape
@@ -1138,7 +1178,13 @@ if info['terminal']:
 	if choix == '1':
 		user_display(1)
 	elif choix == '2':
-		server_display()
+		try :
+			f = open('liste_francais.txt', 'r')
+			f.close()
+			server_display()
+		except Exception as e:
+			print('Erreur avec le fichier "liste_français.txt"')
+			sys.exit(800)
 else :
 	global app
 	app = tk.Tk()
@@ -1159,7 +1205,13 @@ else :
 	app.button_client.grid(row=1, column=1, sticky="nesw")
 	if info['mode'] != '':
 		if info['mode'] == 'server' :
-			app.button_server.invoke()
+			try :
+				f = open('liste_francais.txt', 'r')
+				f.close()
+				app.button_server.invoke()
+			except Exception as e:
+				print('Erreur avec le fichier "liste_français.txt"')
+				sys.exit(800)
 		elif info['mode'] == 'client':
 			app.button_client.invoke()
 	app.mainloop()
