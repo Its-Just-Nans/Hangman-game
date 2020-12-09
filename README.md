@@ -65,7 +65,7 @@ First of all, we reused all the aspects and all the knowledge that we saw in tp 
 how to make a web request, the random module, the threading)
 But we also learned by ourselves (learning to tkinter)
 
-Nans participated a lot, he also invested in the creation of a "virus" that we tried on maxence, but he also created "photo-copy"
+@Its-Just-Nans participated a lot, he also invested in the creation of a "virus" that we tried on maxence, but he also created "photo-copy"
 a small program to easily retrieve photos, for example from a camera and store them in a folder where you can specify the name.
 
 
