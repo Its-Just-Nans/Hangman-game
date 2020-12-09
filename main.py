@@ -388,8 +388,19 @@ def printNextStep():
 			t.penup()
 	if info['etape'] == 12 :
 		info['fini'] = True
-		if not info['terminal']:
+		if info['terminal']:
 			endGame()
+		else:
+			time.sleep(2)
+			app.canvas.destroy()
+			app.label = tk.Label(app, text='Perdu !', fg="blue", bg="white")
+			app.label.grid(row=0, column=0, columnspan=2, sticky="nesw")
+			app.saisi.destroy()
+			app.button.destroy()
+			app.button = tk.Button(app, text="Rejouer", fg="blue", command=lambda : restartGame() )
+			app.button.grid(row=2, column=0)
+			app.quitAndURL = tk.Button(app, text="Quitter Et sortir", fg="red", command=lambda :destroyTkinter(True))
+			app.quitAndURL.grid(row=2, column=1)
 	else:
 		info['etape'] = info['etape'] + 1
 
@@ -400,7 +411,7 @@ def printNextStep():
 def endGame():
 	global info
 	#TODO JULES afficher le temps qui est dans tab['param']
-	info['etape'] = 0
+	info['etape'] = 1
 	info['mot'] = ''
 	if info['terminal']:
 		choix = input('Que voulez-vous faire ?\n1->Rejouer\n2->Quitter\n')
@@ -778,7 +789,12 @@ def client(chaine):
 								app.saisi.delete(0, 'end')
 								printNextStep()
 								app.button['state'] = 'normal'
-								app.saisi.bind("<Return>", activateDisplayByReturn)
+								try :
+									test = app.saisi.grid_info()
+									app.saisi.bind("<Return>", activateDisplayByReturn) 
+								except Exception as e:
+									pass
+									#erreur non bloquante quand client loose
 						else:
 							info['mot'] = tab['param'] #on actualise le mot
 							if info['terminal']:
@@ -797,7 +813,12 @@ def client(chaine):
 								app.saisi.delete(0, 'end')
 								printNextStep()
 								app.button['state'] = 'normal'
-								app.saisi.bind("<Return>", activateDisplayByReturn)
+								try :
+									test = app.saisi.grid_info()
+									app.saisi.bind("<Return>", activateDisplayByReturn) #erreur non bloquante
+								except Exception as e:
+									pass
+									#erreur non bloquante quand client loose
 						else:
 							info['mot'] = tab['param'] #on actualise le mot
 							if info['terminal']:
@@ -967,7 +988,8 @@ def user_display(step):
 			app.canvas.grid(row=0, column=0, columnspan=2, sticky="nesw")
 			t = turtle.RawTurtle(app.canvas)
 			t.hideturtle()
-			t.speed("fast") # ou speed(0) pour instant draw
+			#t.speed("fast") #pour dessiner lentement
+			t.speed(0) #pour instant draw
 		elif step == 4:
 			if not info['terminal']:
 				app.button['state'] = 'disabled'
