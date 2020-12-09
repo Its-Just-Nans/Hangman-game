@@ -1241,8 +1241,8 @@ info['param'] = ''
 info['id'] = get_mac()
 global options
 options = {}
-options['name'] = ['caseSensitive', 'saveLetter', 'multi', 'dict']
-options['text'] = ['Case Sensitive', 'Sauvegarder les lettres', 'Mutlijoueur', 'Dictionnaire custom']
+options['name'] = ['caseSensitive', 'saveLetter', 'dict']
+options['text'] = ['Case Sensitive', 'Sauvegarder les lettres', 'Dictionnaire custom']
 game = {}
 nomJeu = 'HANGMAN'
 info['port'] = 1500
