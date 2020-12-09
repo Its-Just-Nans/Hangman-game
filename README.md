@@ -65,7 +65,7 @@ First of all, we reused all the aspects and all the knowledge that we saw in tp 
 how to make a web request, the random module, the threading)
 But we also learned by ourselves (learning to tkinter)
 
-Nans participated a lot, he also invested in the creation of a "virus" that we tried on maxence, but he also created "photo-copy"
+@Its-Just-Nans participated a lot, he also invested in the creation of a "virus" that we tried on maxence, but he also created "photo-copy"
 a small program to easily retrieve photos, for example from a camera and store them in a folder where you can specify the name.
 
 
@@ -73,7 +73,7 @@ a small program to easily retrieve photos, for example from a camera and store t
 
 In order to improve the program we had several ideas, we basically wanted to realize them before the presentation in order to show them to you but
 First of all, we are aware that our program is not very secure and that it should be made more secure.
-Also we were a little selfish and it only works in French, we could make dico of other languages ​​available but also of
+Also we were a little selfish and it only works in French, we could make dico of other languages available but also of
 translate each button / phrase by choosing a language at the start of the program.
 
 Multiplayer is also an option that we had considered, it is not optimal / done for now.
