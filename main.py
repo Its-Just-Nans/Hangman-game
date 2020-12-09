@@ -564,34 +564,45 @@ def server(tab):
 						temp=int(time.time())
 						game[macClient] = {'nbTry': 0, 'TimeStart': temp}
 						motRand = ''
-						if game['option']['dict']:
-							try:
-								response = wget.urlopen(game['option']['dict'])
-								webContent = response.read().decode('utf-8')
-								text = webContent.replace('\r', '')
-								now = datetime.now()
-								dateString = now.strftime("%d-%m-%Y_%H-%M-%S")
-								nameDico = dateString + '_dico.txt'
-								f = open(nameDico, "w")
-								f.write(text)
-								f.close()
-								motRand = motRandom(nameDico)
-							except Exception as e:
-								print('Erreur dico')
-								print(e.__class__.__name__)
-								motRand = motRandom('liste_francais.txt')
-						else :
+						haveOption = bool(game['option'])
+						if haveOption:
+							if game['option']['dict']:
+								try:
+									response = wget.urlopen(game['option']['dict'])
+									webContent = response.read().decode('utf-8')
+									text = webContent.replace('\r', '')
+									now = datetime.now()
+									dateString = now.strftime("%d-%m-%Y_%H-%M-%S")
+									nameDico = dateString + '_dico.txt'
+									f = open(nameDico, "w")
+									f.write(text)
+									f.close()
+									motRand = motRandom(nameDico)
+								except Exception as e:
+									print('Erreur dico')
+									print(e.__class__.__name__)
+									motRand = motRandom('liste_francais.txt')
+							else :
+								try:
+									motRand = motRandom('liste_francais.txt')
+								except Exception as e:
+									print('Erreur dico liste_francais.txt')
+									print(e.__class__.__name__)
+						else:
+							#Pas d'options
+							game['option']['dict'] = False
+							game['option']['caseSensitive'] = False
 							try:
 								motRand = motRandom('liste_francais.txt')
 							except Exception as e:
 								print('Erreur dico liste_francais.txt')
 								print(e.__class__.__name__)
-							try:
-								if game['option']['caseSensitive']:
-									motRand = transform(motRand)
-							except Exception as e:
-								print('Erreur transformation du mot')
-								print(e.__class__.__name__)
+						try:
+							if 'caseSensitive' in game['option'] and game['option']['caseSensitive']:
+								motRand = transform(motRand)
+						except Exception as e:
+							print('Erreur transformation du mot')
+							print(e.__class__.__name__)
 						game[macClient]['mot'] = motRand
 						print('le  mot est ' + game[macClient]['mot'])
 						game[macClient]['fakeMot'] = changeWordInDash(game[macClient]['mot'])
@@ -605,11 +616,36 @@ def server(tab):
 							elif tab['command'] == 'checkLetter':
 								#le client demande de vérifier une lettre
 								game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
-								if tab['param'] in list(game[macClient]['mot']):
-									##remplacer _ par lettre
-									game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
-									senderServer({'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}, client)
-									if '_' not in game[macClient]['fakeMot']:
+								if game[macClient]['nbTry'] > 12:
+									game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
+									valeur = {'MAC':'SERVER', 'command': 'loose', 'param': SecondeEnDate(game[macClient]['time']) }
+								else:
+									if tab['param'] in list(game[macClient]['mot']):
+										##remplacer _ par lettre
+										game[macClient]['fakeMot'] = lettreTire(game[macClient]['mot'], game[macClient]['fakeMot'], tab['param'])
+										senderServer({'MAC':'SERVER', 'command': 'checkLetter', 'param': game[macClient]['fakeMot']}, client)
+										if '_' not in game[macClient]['fakeMot']:
+											game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
+											valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
+											#on save les stats :
+											try:
+												macClient = macClient.split(':')
+												macClient = macClient[0]
+												saveStats(macClient)
+											except Exception as e:
+												print('Erreur écriture Stats')
+												print(e.__class__.__name__)
+									else:
+										valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
+							elif tab['command'] == 'checkWord':
+								game[macClient]['nbTry'] = game[macClient]['nbTry'] + 1
+								if game[macClient]['nbTry'] > 12:
+									game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
+									valeur = {'MAC':'SERVER', 'command': 'loose', 'param': SecondeEnDate(game[macClient]['time']) }
+								else:
+									#le client demande de vérifier un mot
+									if tab['param'] == game[macClient]['mot'] :
+										senderServer({'MAC':'SERVER', 'command': 'checkWord', 'param': game[macClient]['mot'] }, client)
 										game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
 										valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
 										#on save les stats :
@@ -620,24 +656,8 @@ def server(tab):
 										except Exception as e:
 											print('Erreur écriture Stats')
 											print(e.__class__.__name__)
-								else:
-									valeur = {'MAC':'SERVER', 'command': 'checkLetter', 'param': 'ko'}
-							elif tab['command'] == 'checkWord':
-								#le client demande de vérifier un mot
-								if tab['param'] == game[macClient]['mot'] :
-									senderServer({'MAC':'SERVER', 'command': 'checkWord', 'param': game[macClient]['mot'] }, client)
-									game[macClient]['time'] = int(time.time()) - game[macClient]['TimeStart']
-									valeur = {'MAC':'SERVER', 'command': 'win', 'param': SecondeEnDate(game[macClient]['time']) }
-									#on save les stats :
-									try:
-										macClient = macClient.split(':')
-										macClient = macClient[0]
-										saveStats(macClient)
-									except Exception as e:
-										print('Erreur écriture Stats')
-										print(e.__class__.__name__)
-								else:
-									valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
+									else:
+										valeur = {'MAC':'SERVER', 'command': 'checkWord', 'param': 'ko' }
 							if valeur != {}:
 								senderServer(valeur, client)
 						else:
@@ -799,6 +819,18 @@ def client(chaine):
 							app.label = tk.Label(app, text=textString, fg="blue", bg="white")
 							app.label.grid(row=0, column=0, columnspan=2, sticky="nesw")
 						endGame()
+					elif tab['command'] == 'loose' :
+						print('Loose')
+						info['fini'] = True
+						info['mot'] = ''
+						textString = ConvertDateIntoLetters(tab['param'])
+						if info['terminal']:
+							print(textString)
+						else:
+							app.canvas.destroy()
+							app.label = tk.Label(app, text=textString, fg="blue", bg="white")
+							app.label.grid(row=0, column=0, columnspan=2, sticky="nesw")
+						endGame()
 					else :
 						pass
 	except TimeoutError:
@@ -850,7 +882,7 @@ def user_display(step):
 			if '_' in motInArray:
 				entry = input('Veuillez saisir une lettre ou un mot :\n')
 				if ' ' not in entry:
-					if game['option']['saveLetter']:
+					if 'saveLetter' in game['option']  and game['option']['saveLetter']:
 						if entry in game['saveLetter']:
 							print('--> Deja mis, veuillez saisir une autre lettre :')
 							user_display(2)
@@ -888,31 +920,31 @@ def user_display(step):
 				app.saisi_Client.destroy()
 				app.label['text'] = 'Connection à ' + entry
 				startThread(entry)
-				app.geometry('400x400')
-				app.frameOption = tk.Frame(app, height = 50, bg="yellow")
-				app.frameOption.grid(row=0, column=0, columnspan=2, sticky="nesw")
-				app.frameOption.columnconfigure(0, weight=1)
-				app.frameOption.columnconfigure(1, weight=1)
-				counterRow = 0
-				counterLabel = 0
-				app.buttons = []
-				app.labels = []
-				counter = 0
-				game['optiontk'] = {}
-				for option in options['name'] :
-					app.frameOption.rowconfigure(counterRow, weight=1)
-					counterRow = counterRow + 1
-					app.frameOption.rowconfigure(counterRow, weight=1)
-					counterRow = counterRow + 1
-					app.labels.append(tk.Label(app.frameOption, text=options['text'][counter], borderwidth = 2, relief="ridge", font=('Helvetica', 15)).grid(row=counterLabel, column=0, columnspan=2, sticky="nesw"))
-					counterLabel = counterLabel + 1
-					game['optiontk'][option] = tk.StringVar()
-					game['optiontk'][option].set("0")
-					app.buttons.append(tk.Radiobutton(app.frameOption, variable=game['optiontk'][option], text='Oui', value="1").grid(row=counterLabel, column=0, sticky="nesw"))
-					app.buttons.append(tk.Radiobutton(app.frameOption, variable=game['optiontk'][option], text='Non', value="0").grid(row=counterLabel, column=1, sticky="nesw"))
-					counterLabel = counterLabel + 1
-					counter = counter + 1
-
+				if 'name' in options:
+					app.geometry('400x400')
+					app.frameOption = tk.Frame(app, height = 50, bg="yellow")
+					app.frameOption.grid(row=0, column=0, columnspan=2, sticky="nesw")
+					app.frameOption.columnconfigure(0, weight=1)
+					app.frameOption.columnconfigure(1, weight=1)
+					counterRow = 0
+					counterLabel = 0
+					app.buttons = []
+					app.labels = []
+					counter = 0
+					game['optiontk'] = {}
+					for option in options['name'] :
+						app.frameOption.rowconfigure(counterRow, weight=1)
+						counterRow = counterRow + 1
+						app.frameOption.rowconfigure(counterRow, weight=1)
+						counterRow = counterRow + 1
+						app.labels.append(tk.Label(app.frameOption, text=options['text'][counter], borderwidth = 2, relief="ridge", font=('Helvetica', 15)).grid(row=counterLabel, column=0, columnspan=2, sticky="nesw"))
+						counterLabel = counterLabel + 1
+						game['optiontk'][option] = tk.StringVar()
+						game['optiontk'][option].set("0")
+						app.buttons.append(tk.Radiobutton(app.frameOption, variable=game['optiontk'][option], text='Oui', value="1").grid(row=counterLabel, column=0, sticky="nesw"))
+						app.buttons.append(tk.Radiobutton(app.frameOption, variable=game['optiontk'][option], text='Non', value="0").grid(row=counterLabel, column=1, sticky="nesw"))
+						counterLabel = counterLabel + 1
+						counter = counter + 1
 				app.button_saisi = tk.Button(app, text="Commencer la partie", fg="blue", command=lambda : setOptions() )
 				app.button_saisi.grid(row=1, column=0, columnspan=2)
 		elif step == 3:
@@ -942,7 +974,7 @@ def user_display(step):
 				app.saisi.unbind("<Return>")
 			choix = app.saisi.get()
 			if ' ' not in choix:
-				if game['option']['saveLetter']:
+				if ('saveLetter' in game['option'] ) and game['option']['saveLetter']:
 					if choix in game['saveLetter']:
 						app.button['state'] = 'normal'
 						app.saisi.bind("<Return>", activateDisplayByReturn)
@@ -995,49 +1027,51 @@ def setOptions() :
 	global app
 	global info
 	game['option'] = {}
-	if info['terminal']:
-		counter = 0
-		for nameOption in options['name'] :
-			choix = input(options['text'][counter] + ' ?\n1->Oui\n2->Non\n')
-			while(choix != '1' and choix != '2') :
-				choix = input(options['text'][counter] + '?\n1->Rejouer\n2->Quitter\n')
-			if choix == "1":
-				if nameOption == 'dict':
-					lienDict = input('Saisir le lien (URL) du dictionnaire\n')
-					game['option'][nameOption] = lienDict
-				else :
-					if nameOption == 'saveLetter':
-						game['saveLetter'] = []
-					game['option'][nameOption] = True
-			else:
-				game['option'][nameOption] = False
-			counter = counter + 1
-		entry = input('1->Commencer la partie\n')
-		while entry != '1' :
-			entry = input('1->Commencer la partie\n')
-	else:
-		counter = 0
-		for nameOption in options['name'] :
-			try:
-
-				if game['optiontk'][nameOption].get() == "1":
+	if 'name' in options:
+		if info['terminal']:
+			counter = 0
+			for nameOption in options['name'] :
+				choix = input(options['text'][counter] + ' ?\n1->Oui\n2->Non\n')
+				while(choix != '1' and choix != '2') :
+					choix = input(options['text'][counter] + '?\n1->Rejouer\n2->Quitter\n')
+				if choix == "1":
 					if nameOption == 'dict':
-						createPopUp()
-					elif nameOption == 'saveLetter':
-						game['saveLetter'] = []
-						game['option'][nameOption] = True
+						lienDict = input('Saisir le lien (URL) du dictionnaire\n')
+						game['option'][nameOption] = lienDict
 					else :
+						if nameOption == 'saveLetter':
+							game['saveLetter'] = []
 						game['option'][nameOption] = True
 				else:
-						game['option'][nameOption] = False
-			except Exception as e:
-				pass
-			counter = counter + 1
-		app.frameOption.destroy()
+					game['option'][nameOption] = False
+				counter = counter + 1
+			entry = input('1->Commencer la partie\n')
+			while entry != '1' :
+				entry = input('1->Commencer la partie\n')
+		else:
+			counter = 0
+			for nameOption in options['name'] :
+				try:
+					if game['optiontk'][nameOption].get() == "1":
+						if nameOption == 'dict':
+							createPopUp()
+						elif nameOption == 'saveLetter':
+							game['saveLetter'] = []
+							game['option'][nameOption] = True
+						else :
+							game['option'][nameOption] = True
+					else:
+							game['option'][nameOption] = False
+				except Exception as e:
+					pass
+				counter = counter + 1
+			app.frameOption.destroy()
 	sender({'command': 'startGame', 'param': game['option']})
 
 
-
+#une fonction pour avoir le lien du dico
+#@argument: 
+#@return:
 def createPopUp():
 	global popUp
 	popUp = tk.Tk()
@@ -1058,6 +1092,9 @@ def createPopUp():
 	popUp.suivant.grid(row=2, column=1)
 	popUp.mainloop()
 
+#fonction pour set la variabl du dico
+#@argument: boolean
+#@return: 0
 def setOptionDict(variable):
 	global popUp
 	if variable:
